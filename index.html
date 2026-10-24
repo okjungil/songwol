@@ -124,7 +124,7 @@
           <div class="space-y-1 text-xs text-zinc-500">
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진을 탭하면 <span class="text-emerald-600 font-medium">출석</span> / <span class="text-zinc-500 font-medium">결석</span> 전환</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 동반은 사진 아래 <strong>👪 숫자</strong>를 눌러 인원 조정</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>메모 버튼(📝)으로 기도제목·알레르기 등 기록 가능</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>메모 버튼(📝)으로 기도제목·알레르기 등 기록 가능 <span class="text-amber-600 font-medium">(로그인 필요)</span></span></div>
             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>담당 선생님 <strong>로그인</strong> 후 반 이름 옆 <strong>＋ 버튼</strong>으로 학생 영구 추가 가능</span></div>
           </div>
         </div>
@@ -171,6 +171,9 @@
           <div class="space-y-1 text-xs text-zinc-500">
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>전체·반별 출석 통계 및 일자별 이력 확인</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>반 이름을 누르면 반별 상세 출석 현황 팝업</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>월별 현황 표로 월 단위 집계 확인</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>반별 누적 현황으로 전체 기간 출석률 비교</span></div>
+            <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong>로 일자별·월별·반별·학생별 4개 시트 저장</span></div>
             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사</span></div>
           </div>
         </div>
@@ -207,6 +210,28 @@
       <p class="text-xs text-zinc-400 mb-3">출석체크를 한 날만 표시됩니다.</p>
       <div id="historyContainer" class="space-y-2"></div>
     </div>
+
+    <div class="bg-white rounded-2xl ring-1 ring-black/6 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="text-sm font-semibold text-zinc-900">영아부 출석현황</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">월 › 주차 › 날짜 기준 그리드</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 text-xs text-zinc-400">
+            <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-full border-2 border-emerald-500 inline-flex items-center justify-center text-emerald-600 text-[9px] font-bold">○</span> 출석</span>
+            <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-rose-50 border border-rose-200 inline-block"></span> 결석</span>
+            <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-zinc-100 inline-block"></span> 비재적</span>
+          </div>
+          <button onclick="downloadExcel()" class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            엑셀 다운로드
+          </button>
+        </div>
+      </div>
+      <div id="studentGridContainer" class="overflow-x-auto"></div>
+    </div>
+
   </div>
 
 </main>
@@ -265,7 +290,7 @@
           <span class="text-lg shrink-0">👀</span>
           <div>
             <div class="font-semibold text-zinc-900 mb-0.5">로그인 없이 보기</div>
-            <div class="text-zinc-500">누구나 접속하면 전체 출석 현황을 실시간으로 볼 수 있습니다.</div>
+            <div class="text-zinc-500">누구나 접속하면 전체 출석 현황을 실시간으로 볼 수 있습니다. 단, 메모·기도제목은 로그인 후에만 열람·수정 가능합니다.</div>
           </div>
         </div>
         <div class="flex gap-3 items-start">
@@ -387,7 +412,7 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
 // 각 반 id: PIN 숫자 4자리 (처음엔 모두 0000으로 설정 → 교사가 변경 불가하므로 여기서 직접 수정)
 // 관리자 PIN: 모든 반 수정 가능
 const CLASS_PINS = {
-  admin:  '0401',   // ★ 관리자(총괄 선생님) PIN - 모든 반 수정
+  admin:  '1234',   // ★ 관리자(총괄 선생님) PIN - 모든 반 수정
   red1:   '1111',   // 빨강1반 박유미 선생님
   red2:   '2222',   // 빨강2반 박현정 선생님
   orange: '3333',   // 주황반 장미화 선생님
@@ -477,9 +502,27 @@ async function firebaseBackend() {
     watchPhotos:    cb => F.onSnapshot(photoCol(), s => { const m = {}; s.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:       async (name, img) => { await ensureAuth(); return F.setDoc(photoDoc(name), { name, img }); },
     delPhoto:       async name => { await ensureAuth(); return F.deleteDoc(photoDoc(name)); },
-    watchRoster:    cb => F.onSnapshot(F.collection(fdb, 'songwolRoster'), s => { const m = {}; s.forEach(d => m[d.id] = d.data().extra || []); cb(m); }, console.error),
-    addToRoster:    async (cid, name) => { await ensureAuth(); const d = await F.getDoc(rosterDoc(cid)); const cur = d.exists() ? (d.data().extra || []) : []; if (!cur.includes(name)) await F.setDoc(rosterDoc(cid), { extra: [...cur, name] }); },
-    removeFromRoster: async (cid, name) => { await ensureAuth(); const d = await F.getDoc(rosterDoc(cid)); const cur = d.exists() ? (d.data().extra || []) : []; await F.setDoc(rosterDoc(cid), { extra: cur.filter(n => n !== name) }); }
+    watchRoster:    cb => F.onSnapshot(F.collection(fdb, 'songwolRoster'), s => { const m = {}; s.forEach(d => m[d.id] = d.data()); cb(m); }, console.error),
+    addToRoster:    async (cid, name, joinDate) => {
+      await ensureAuth();
+      const d = await F.getDoc(rosterDoc(cid));
+      const cur = d.exists() ? (d.data().extra || []) : [];
+      if (!cur.find(e => (e.name || e) === name)) {
+        const entry = { name, joinDate: joinDate || new Date().toISOString().slice(0,10) };
+        await F.setDoc(rosterDoc(cid), { extra: [...cur, entry] });
+      }
+    },
+    removeFromRoster: async (cid, name, leaveDate) => {
+      await ensureAuth();
+      const d = await F.getDoc(rosterDoc(cid));
+      const cur = d.exists() ? (d.data().extra || []) : [];
+      const updated = cur.map(e => {
+        const n = e.name || e;
+        if (n !== name) return e;
+        return { name: n, joinDate: e.joinDate || '2000-01-01', leaveDate: leaveDate || new Date().toISOString().slice(0,10) };
+      });
+      await F.setDoc(rosterDoc(cid), { extra: updated });
+    }
   };
 }
 
@@ -538,7 +581,11 @@ function canEditStaff() {
 }
 
 function canEditMemo() {
-  return !!currentRole;
+  return !!currentRole;  // 로그인한 경우에만 메모 수정/열람 가능
+}
+
+function canViewMemo() {
+  return !!currentRole;  // 메모 내용 열람도 로그인 필수
 }
 
 function getRoleLabel() {
@@ -593,12 +640,33 @@ function deepMerge(a, b) {
   return a;
 }
 const clone = o => JSON.parse(JSON.stringify(o));
-const allOf = (cls, data) => {
+
+// 특정 날짜 기준으로 재적 학생 목록 반환 (추가일 이후, 삭제일 이전)
+const allOf = (cls, data, forDate) => {
   const base = cls.students;
-  const fromRemote = remoteRoster[cls.id] || [];
+  const rosterEntries = (remoteRoster[cls.id] || {}).extra || remoteRoster[cls.id] || [];
+  const checkDate = forDate || getDateKey();
+  const fromRemote = rosterEntries
+    .filter(e => {
+      const n = e.name || e;
+      const join = e.joinDate || '2000-01-01';
+      const leave = e.leaveDate || '9999-12-31';
+      return checkDate >= join && checkDate <= leave;
+    })
+    .map(e => e.name || e);
   const fromDay = (data[cls.id] || {}).extraStudents || [];
   const extra = [...new Set([...fromRemote, ...fromDay])];
   return [...base, ...extra.filter(n => !base.includes(n))];
+};
+
+// 학생이 삭제(leaveDate)됐는지 여부
+const isStudentActive = (cid, name, forDate) => {
+  const entries = (remoteRoster[cid] || {}).extra || remoteRoster[cid] || [];
+  const entry = entries.find(e => (e.name || e) === name);
+  if (!entry) return true;
+  const leave = entry.leaveDate || '9999-12-31';
+  const checkDate = forDate || getDateKey();
+  return checkDate <= leave;
 };
 
 // ═══════════════════════════════════════════════════
@@ -767,7 +835,7 @@ function renderApp() {
         <div class="p-4 grid grid-cols-4 sm:grid-cols-5 gap-3">
           ${students.map(s => {
             const isP = !!data[cls.id].attendance[s];
-            const hasMemo = memos[s] && memos[s].trim();
+            const hasMemo = canViewMemo() && memos[s] && memos[s].trim();
             const gn = ((data[cls.id].guardians || {})[s]) || 0;
             const isExtra = !cls.students.includes(s);
             const canDelete = currentRole === 'admin' && isExtra;
@@ -793,11 +861,11 @@ function renderApp() {
               <div class="w-full flex items-center justify-center gap-0.5 mt-1.5">
                 <span onclick="${editable ? `toggleAttendance('${cls.id}','${s}')` : 'showReadonlyToast()'}"
                   class="text-xs font-medium truncate cursor-pointer select-none ${isP ? 'text-emerald-700' : 'text-zinc-500'}">${s}</span>
-                <button onclick="${canEditMemo() ? `openMemoModal('${s}')` : 'showReadonlyToast()'}"
+                ${canViewMemo() ? `<button onclick="openMemoModal('${s}')"
                   title="메모"
                   class="shrink-0 w-4 h-4 flex items-center justify-center rounded ${hasMemo ? 'text-amber-500' : 'text-zinc-300 hover:text-zinc-400'}">
                   <svg class="w-3 h-3" fill="${hasMemo ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                </button>
+                </button>` : ''}
               </div>
               <button onclick="${editable ? `cycleGuardian('${cls.id}','${s}')` : 'showReadonlyToast()'}"
                 title="보호자 인원"
@@ -919,8 +987,9 @@ window.confirmAddStudent = async () => {
   if (allOf(ministryData.find(c => c.id === cid), currentAttendanceData).includes(name))
     return showToast('이미 등록된 이름입니다.');
   closeAddModal();
+  const joinDate = getDateKey();
   if (B && B.addToRoster) {
-    await B.addToRoster(cid, name);
+    await B.addToRoster(cid, name, joinDate);
   }
   patchDay({ [cid]: {
     extraStudents: [...((currentAttendanceData[cid] || {}).extraStudents || []), name],
@@ -931,16 +1000,17 @@ window.confirmAddStudent = async () => {
 
 window.removeStudent = async (cid, name) => {
   if (currentRole !== 'admin') return showReadonlyToast();
-  if (!confirm(`"${name}" 학생을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+  if (!confirm(`"${name}" 학생을 제적 처리하시겠습니까?\n오늘(${getDateKey()}) 이후 재적에서 제외됩니다.`)) return;
+  const leaveDate = getDateKey();
   if (B && B.removeFromRoster) {
-    await B.removeFromRoster(cid, name);
+    await B.removeFromRoster(cid, name, leaveDate);
   }
   const cur = currentAttendanceData[cid] || {};
   const extra = (cur.extraStudents || []).filter(n => n !== name);
   const att = { ...(cur.attendance || {}) };
   delete att[name];
   patchDay({ [cid]: { extraStudents: extra, attendance: att } });
-  showToast(`${name} 학생이 삭제되었습니다.`);
+  showToast(`${name} 학생이 제적 처리되었습니다.`);
 };
 
 // ═══════════════════════════════════════════════════
@@ -958,7 +1028,7 @@ window.renderSearchResults = function() {
       if (q && ![s, cls.className, cls.teacher].some(v => v.toLowerCase().includes(q))) return;
       n++;
       const isP = !!cd.attendance[s];
-      const memo = memos[s] || '';
+      const memo = canViewMemo() ? (memos[s] || '') : '';
       const editable = canEditClass(cls.id);
       html += `
       <div class="flex items-center justify-between gap-3 p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5">
@@ -979,8 +1049,8 @@ window.renderSearchResults = function() {
             class="text-xs font-medium px-3 py-1.5 rounded-lg ${isP ? 'bg-emerald-600 text-white' : 'bg-zinc-200 text-zinc-700'} transition-colors">
             ${isP ? '취소' : '출석'}
           </button>
-          <button onclick="${canEditMemo() ? `openMemoModal('${s}')` : 'showReadonlyToast()'}"
-            class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition-colors">메모</button>
+          ${canViewMemo() ? `<button onclick="openMemoModal('${s}')"
+            class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition-colors">메모</button>` : ''}
         </div>
       </div>`;
     });
@@ -1082,6 +1152,7 @@ function renderStats() {
   document.getElementById('statTeacher').innerText = `교사 ${tt}/${ministryData.length} · 스텝 ${ts}/${staffList.length} · 합계 ${tt + ts}명 출석`;
   document.getElementById('statGuardian').innerText = `👪 보호자 출석 ${tg}명`;
   renderHistory();
+  renderStudentGrid();
 }
 
 function collectDays() {
@@ -1094,11 +1165,11 @@ function collectDays() {
   return days;
 }
 
-function dayStats(day) {
+function dayStats(day, forDate) {
   let p = 0, total = 0, g = 0;
   ministryData.forEach(cls => {
     const cd = (day || {})[cls.id] || { attendance: {} };
-    allOf(cls, day || {}).forEach(s => { total++; if (cd.attendance && cd.attendance[s]) p++; });
+    allOf(cls, day || {}, forDate).forEach(s => { total++; if (cd.attendance && cd.attendance[s]) p++; });
     g += sumG(day, cls);
   });
   return { p, total, g };
@@ -1107,7 +1178,7 @@ function dayStats(day) {
 function checkedDays() {
   const days = collectDays();
   return Object.keys(days).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse()
-    .map(d => ({ d, day: days[d], ...dayStats(days[d]) })).filter(r => r.p > 0);
+    .map(d => ({ d, day: days[d], ...dayStats(days[d], d) })).filter(r => r.p > 0);
 }
 
 const dayLabel = d => {
@@ -1137,8 +1208,690 @@ function renderHistory() {
   }).join('');
 }
 
+function renderStudentGrid() {
+  const el = document.getElementById('studentGridContainer');
+  const rows = checkedDays().slice().reverse();
+  if (!rows.length) {
+    el.innerHTML = `<div class="text-center py-8 text-sm text-zinc-400">출석 기록이 없습니다.</div>`;
+    return;
+  }
+
+  // ── 날짜 → 월 → 주차 구조 ──
+  const monthMap = {};
+  rows.forEach(r => {
+    const ym = r.d.slice(0, 7);
+    if (!monthMap[ym]) monthMap[ym] = {};
+    const dayNum = new Date(r.d + 'T00:00:00').getDate();
+    const wk = `${Math.ceil(dayNum / 7)}주`;
+    if (!monthMap[ym][wk]) monthMap[ym][wk] = [];
+    monthMap[ym][wk].push(r.d);
+  });
+  const allDates = rows.map(r => r.d);
+
+  const monthSpans = [];
+  const weekSpans  = [];
+  Object.keys(monthMap).sort().forEach(ym => {
+    const wks = Object.keys(monthMap[ym]).sort((a, b) => +a[0] - +b[0]);
+    let mCount = 0;
+    wks.forEach(wk => {
+      const cnt = monthMap[ym][wk].sort().length;
+      weekSpans.push({ label: wk, count: cnt });
+      mCount += cnt;
+    });
+    // 년도 삭제: MM월만 표시
+    monthSpans.push({ ym, label: parseInt(ym.slice(5)) + '월', count: mCount });
+  });
+
+  // ── CSS 상수 ──
+  const TH   = 'border border-zinc-200 text-center text-[11px] font-semibold px-1.5 py-1.5 whitespace-nowrap select-none';
+  const TD   = 'border border-zinc-200 text-center text-[11px] px-1 py-1 whitespace-nowrap';
+  const STIC = 'sticky left-0 z-10';
+
+  // 날짜 합계 카운터 초기화
+  const dateStu   = {}; // 학생 재적
+  const dateStuP  = {}; // 학생 출석
+  const dateTeaP  = {}; // 교사 출석
+  const dateSteP  = {}; // 스텝 출석
+  const dateTeaT  = {}; // 교사 재적(당일 반수)
+  const dateSteT  = {}; // 스텝 재적
+  const dateGrd   = {}; // 보호자
+  allDates.forEach(d => {
+    dateStu[d]=0; dateStuP[d]=0; dateTeaP[d]=0;
+    dateSteP[d]=0; dateTeaT[d]=0; dateSteT[d]=0; dateGrd[d]=0;
+  });
+
+  // ── 헤더 3행 ──
+  // 행1: 이름 고정열 | 월(colspan) | 출석률 | 출석 | 결석
+  let h1 = `<th class="${TH} bg-slate-100" rowspan="3" style="left:0;z-index:20;position:sticky;min-width:4.5rem">영아부 출석현황</th>`;
+  monthSpans.forEach(m => {
+    h1 += `<th class="${TH} bg-blue-600 text-white" colspan="${m.count}">${m.label}</th>`;
+  });
+  h1 += `<th class="${TH} bg-slate-100 text-zinc-600" rowspan="3">출석률</th>`
+      + `<th class="${TH} bg-emerald-50 text-emerald-700" rowspan="3">출석</th>`
+      + `<th class="${TH} bg-rose-50 text-rose-600" rowspan="3">결석</th>`;
+
+  // 행2: 주차
+  let h2 = '';
+  weekSpans.forEach(w => {
+    h2 += `<th class="${TH} bg-blue-50 text-blue-700" colspan="${w.count}">${w.label}</th>`;
+  });
+
+  // 행3: 날짜(클릭 → 일자별 팝업)
+  let h3 = '';
+  allDates.forEach(d => {
+    const md = d.slice(5).replace('-', '/');
+    h3 += `<th class="${TH} bg-slate-50 text-zinc-500 font-medium cursor-pointer hover:bg-blue-100 hover:text-blue-700 transition-colors" onclick="openDayDetail('${d}')" title="${d} 출석현황 보기">${md}</th>`;
+  });
+
+  // ── 데이터 행 ──
+  let bodyHtml = '';
+  const clsColspan = allDates.length + 4; // 이름+날짜들+출석률+출석+결석
+
+  ministryData.forEach((cls, ci) => {
+    // 반 학생 목록
+    const studentsSet = new Set(cls.students);
+    rows.forEach(r => allOf(cls, r.day, r.d).forEach(s => studentsSet.add(s)));
+    const allStudents = [...studentsSet];
+
+    // 교사 출석 데이터 먼저 집계 (반 헤더에 표시 + 합계용)
+    let tP = 0, tT = 0;
+    const teacherCellsData = allDates.map(d => {
+      const dayData = rows.find(r => r.d === d);
+      if (!dayData) return 'na';
+      dateTeaT[d]++;
+      tT++;
+      const present = !!(dayData.day[cls.id] || {}).teacherPresent;
+      if (present) { dateTeaP[d]++; tP++; }
+      return present ? 'present' : 'absent';
+    });
+    const tPct = tT ? Math.round(tP / tT * 100) + '%' : '-';
+
+    // 반 구분 헤더 (파란 박스) — 교사 출석 배지 포함
+    const teaBadge = tT > 0
+      ? `<span class="ml-2 inline-flex items-center gap-1 text-[10px] font-normal rounded-full px-2 py-0.5 ${tP === tT ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}">교사 ${tP === tT ? '✓ 출석' : `${tP}/${tT}`}</span>`
+      : '';
+    bodyHtml += `<tr>
+      <td colspan="${clsColspan}" class="border border-zinc-200 bg-indigo-50 px-3 py-1 text-[11px] font-bold text-indigo-800 ${STIC}" style="left:0">
+        ${cls.className} <span class="font-normal text-indigo-400">· ${cls.teacher} 선생님</span>${teaBadge}
+      </td>
+    </tr>`;
+
+    // 학생 행
+    allStudents.forEach((s, si) => {
+      let totalDays = 0, totalP = 0;
+      const rowBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50/40';
+      const cells = allDates.map(d => {
+        const dayData = rows.find(r => r.d === d);
+        if (!dayData) return 'na';
+        const active = allOf(cls, dayData.day, d).includes(s);
+        if (!active) return 'na';
+        totalDays++;
+        dateStu[d]++;
+        const present = !!((dayData.day[cls.id] || {}).attendance || {})[s];
+        if (present) { totalP++; dateStuP[d]++; }
+        // 보호자 집계
+        dateGrd[d] += (((dayData.day[cls.id] || {}).guardians || {})[s]) || 0;
+        return present ? 'present' : 'absent';
+      });
+      const absent = totalDays - totalP;
+      const pct = totalDays ? Math.round(totalP / totalDays * 100) + '%' : '-';
+
+      bodyHtml += `<tr class="${rowBg}">`;
+      bodyHtml += `<td class="${TD} font-medium text-zinc-800 text-left px-2 ${STIC} bg-inherit">${s}</td>`;
+      cells.forEach(c => {
+        if (c === 'na')           bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
+        else if (c === 'present') bodyHtml += `<td class="${TD} bg-emerald-50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full border-2 border-emerald-500 text-emerald-600 text-[9px] font-bold leading-none">○</span></td>`;
+        else                      bodyHtml += `<td class="${TD} bg-rose-50/50"></td>`;
+      });
+      bodyHtml += `<td class="${TD} text-zinc-500 tabular-nums">${pct}</td>`;
+      bodyHtml += `<td class="${TD} font-bold text-emerald-600 tabular-nums">${totalP}</td>`;
+      bodyHtml += `<td class="${TD} text-rose-500 tabular-nums">${absent}</td>`;
+      bodyHtml += `</tr>`;
+    });
+  });
+
+  // 스텝 구분 헤더
+  bodyHtml += `<tr>
+    <td colspan="${clsColspan}" class="border border-zinc-200 bg-teal-50 px-3 py-1 text-[11px] font-bold text-teal-800 ${STIC}" style="left:0">
+      스텝
+    </td>
+  </tr>`;
+  staffList.forEach((name, si) => {
+    const rowBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50/40';
+    const cells = allDates.map(d => {
+      const dayData = rows.find(r => r.d === d);
+      if (!dayData) return 'na';
+      dateSteT[d]++;
+      const present = !!((dayData.day.staff || {}).attendance || {})[name];
+      if (present) dateSteP[d]++;
+      return present ? 'present' : 'absent';
+    });
+    const sP = cells.filter(c => c === 'present').length;
+    const sT = cells.filter(c => c !== 'na').length;
+    const sPct = sT ? Math.round(sP / sT * 100) + '%' : '-';
+    bodyHtml += `<tr class="${rowBg}">`;
+    bodyHtml += `<td class="${TD} font-medium text-teal-700 text-left px-2 ${STIC} bg-inherit">${name}</td>`;
+    cells.forEach(c => {
+      if (c === 'na')          bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
+      else if (c === 'present') bodyHtml += `<td class="${TD} bg-teal-50"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full border-2 border-teal-400 text-teal-600 text-[9px] font-bold leading-none">○</span></td>`;
+      else                     bodyHtml += `<td class="${TD} bg-slate-50"></td>`;
+    });
+    bodyHtml += `<td class="${TD} text-teal-500 tabular-nums">${sPct}</td>`;
+    bodyHtml += `<td class="${TD} font-bold text-teal-600 tabular-nums">${sP}</td>`;
+    bodyHtml += `<td class="${TD} text-slate-400 tabular-nums">${sT - sP}</td>`;
+    bodyHtml += `</tr>`;
+  });
+
+  // ── 하단 합계 영역 (4개 구분행) ──
+  const makeFootRow = (label, bg, totals, presents, color) => {
+    let row = `<tr class="${bg}">`;
+    row += `<td class="${TD} font-bold text-center ${STIC} ${bg}" style="left:0">${label}</td>`;
+    allDates.forEach(d => {
+      const t = totals[d], p = presents[d], ab = t - p;
+      row += `<td class="${TD} align-top py-0.5">
+        <div class="flex flex-col gap-0 text-[9px] leading-tight text-center">
+          <span class="text-zinc-400 tabular-nums">${t}명</span>
+          <span class="${color} font-bold tabular-nums">${p}출</span>
+          <span class="text-rose-400 tabular-nums">${ab}결</span>
+        </div></td>`;
+    });
+    const allP = allDates.reduce((a, d) => a + presents[d], 0);
+    const allT = allDates.reduce((a, d) => a + totals[d], 0);
+    const allPct = allT ? Math.round(allP / allT * 100) + '%' : '-';
+    row += `<td class="${TD} font-semibold text-zinc-600 tabular-nums">${allPct}</td>`;
+    row += `<td class="${TD} font-bold ${color} tabular-nums">${allP}</td>`;
+    row += `<td class="${TD} text-rose-500 tabular-nums">${allT - allP}</td>`;
+    row += `</tr>`;
+    return row;
+  };
+
+  // 보호자 합계행 (단순 숫자)
+  const makeGuardianRow = () => {
+    let row = `<tr class="bg-amber-50/60">`;
+    row += `<td class="${TD} font-bold text-amber-700 text-center ${STIC} bg-amber-50/60" style="left:0">👪 보호자</td>`;
+    allDates.forEach(d => {
+      row += `<td class="${TD} text-amber-700 font-semibold tabular-nums text-center">${dateGrd[d] || 0}</td>`;
+    });
+    const total = allDates.reduce((a, d) => a + (dateGrd[d] || 0), 0);
+    row += `<td class="${TD}" colspan="3"><span class="text-amber-700 font-bold tabular-nums">${total}명</span></td>`;
+    row += `</tr>`;
+    return row;
+  };
+
+  let footHtml = '';
+  footHtml += makeFootRow('학생 합계',  'bg-slate-100', dateStu, dateStuP, 'text-emerald-600');
+  footHtml += makeFootRow('교사 합계',  'bg-indigo-50', dateTeaT, dateTeaP, 'text-indigo-600');
+  footHtml += makeFootRow('스텝 합계',  'bg-teal-50',   dateSteT, dateSteP, 'text-teal-600');
+  footHtml += makeGuardianRow();
+
+  el.innerHTML = `
+    <div class="overflow-x-auto -mx-4 px-4">
+      <table class="border-collapse text-xs w-max">
+        <thead>
+          <tr>${h1}</tr>
+          <tr>${h2}</tr>
+          <tr>${h3}</tr>
+        </thead>
+        <tbody>${bodyHtml}</tbody>
+        <tfoot>${footHtml}</tfoot>
+      </table>
+    </div>`;
+}
+
 // ═══════════════════════════════════════════════════
-// 18. 출석 요약
+// 18. 엑셀 다운로드
+// ═══════════════════════════════════════════════════
+
+window.downloadExcel = async function() {
+  showToast('엑셀 파일을 준비하는 중…');
+
+  const XLSX = await (async () => {
+    if (window.XLSX) return window.XLSX;
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    return window.XLSX;
+  })();
+
+  // ── 반별 파스텔 색상표 ──
+  const CLS_COLORS = [
+    { bg: 'FFF0F7', bd: 'FFB3D1' }, // 빨강1
+    { bg: 'FFF5F5', bd: 'FCA5A5' }, // 빨강2
+    { bg: 'FFF7ED', bd: 'FDBA74' }, // 주황
+    { bg: 'FEFCE8', bd: 'FDE047' }, // 노랑
+    { bg: 'F0FDF4', bd: '86EFAC' }, // 초록
+    { bg: 'EFF6FF', bd: '93C5FD' }, // 파랑1
+    { bg: 'EEF2FF', bd: 'A5B4FC' }, // 파랑2
+    { bg: 'FAF5FF', bd: 'D8B4FE' }, // 보라
+  ];
+
+  const wb  = XLSX.utils.book_new();
+  const rows = checkedDays().slice().reverse();
+
+  // ── 공통 border 헬퍼 ──
+  function bAll(rgb) {
+    const b = { style: 'thin', color: { rgb } };
+    return { top: b, bottom: b, left: b, right: b };
+  }
+  function bMed(rgb) {
+    const b = { style: 'medium', color: { rgb } };
+    return { top: b, bottom: b, left: b, right: b };
+  }
+
+  const C = s => ({ horizontal: 'center', vertical: 'center', wrapText: s });
+
+  // ── 반별 색상 스타일 생성기 ──
+  function clsStyle(ci, bold) {
+    const col = CLS_COLORS[ci % CLS_COLORS.length];
+    return {
+      font: { bold: !!bold, sz: 9, color: { rgb: '1F2937' } },
+      fill: { fgColor: { rgb: col.bg } },
+      alignment: C(false),
+      border: bAll(col.bd),
+    };
+  }
+  function clsHdrStyle(ci) {
+    const col = CLS_COLORS[ci % CLS_COLORS.length];
+    return {
+      font: { bold: true, sz: 10, color: { rgb: '1E1B4B' } },
+      fill: { fgColor: { rgb: col.bg } },
+      alignment: C(false),
+      border: bMed(col.bd),
+    };
+  }
+  function clsSubStyle(ci) { // 소계 행
+    const col = CLS_COLORS[ci % CLS_COLORS.length];
+    return {
+      font: { bold: true, sz: 9, color: { rgb: '374151' } },
+      fill: { fgColor: { rgb: col.bd } }, // 테두리 색을 배경으로
+      alignment: C(false),
+      border: bMed(col.bd),
+    };
+  }
+
+  // ── 공통 스타일 팔레트 ──
+  const S = {
+    titleBig:  { font: { bold: true, sz: 20, color: { rgb: 'FF6B9D' }, name: 'Malgun Gothic' },
+                 fill: { fgColor: { rgb: 'FFF0F7' } },
+                 alignment: C(false), border: bAll('FFB3D1') },
+    subtitle:  { font: { bold: true, sz: 12, color: { rgb: '7C3AED' }, name: 'Malgun Gothic' },
+                 fill: { fgColor: { rgb: 'F5F3FF' } },
+                 alignment: C(false), border: bAll('C4B5FD') },
+    monthHdr:  { font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } },
+                 fill: { fgColor: { rgb: '3B82F6' } },
+                 alignment: C(false), border: bAll('1D4ED8') },
+    weekHdr:   { font: { bold: true, sz: 9, color: { rgb: '1E40AF' } },
+                 fill: { fgColor: { rgb: 'DBEAFE' } },
+                 alignment: C(false), border: bAll('93C5FD') },
+    dateHdr:   { font: { bold: true, sz: 9, color: { rgb: '374151' } },
+                 fill: { fgColor: { rgb: 'F8FAFC' } },
+                 alignment: C(false), border: bAll('CBD5E1') },
+    steHdr:    { font: { bold: true, sz: 10, color: { rgb: '0F766E' } },
+                 fill: { fgColor: { rgb: 'F0FDFA' } },
+                 alignment: C(false), border: bMed('5EEAD4') },
+    steRow:    { font: { sz: 9, color: { rgb: '0F766E' } },
+                 fill: { fgColor: { rgb: 'F0FDFA' } },
+                 alignment: C(false), border: bAll('99F6E4') },
+    stePres:   { font: { bold: true, sz: 11, color: { rgb: '0F766E' } },
+                 fill: { fgColor: { rgb: 'CCFBF1' } },
+                 alignment: C(false), border: bAll('5EEAD4') },
+    steSub:    { font: { bold: true, sz: 9, color: { rgb: '134E4A' } },
+                 fill: { fgColor: { rgb: '5EEAD4' } },
+                 alignment: C(false), border: bMed('0D9488') },
+    present:   { font: { bold: true, sz: 11, color: { rgb: '059669' } },
+                 fill: { fgColor: { rgb: 'ECFDF5' } },
+                 alignment: C(false), border: bAll('6EE7B7') },
+    absent:    { fill: { fgColor: { rgb: 'FFF1F2' } },
+                 alignment: C(false), border: bAll('FECDD3') },
+    naCell:    { font: { sz: 8, color: { rgb: 'D1D5DB' } },
+                 fill: { fgColor: { rgb: 'F3F4F6' } },
+                 alignment: C(false), border: bAll('E5E7EB') },
+    pctCell:   { font: { sz: 9, color: { rgb: '6B7280' } },
+                 fill: { fgColor: { rgb: 'F9FAFB' } },
+                 alignment: C(false), border: bAll('E5E7EB') },
+    okCell:    { font: { bold: true, sz: 9, color: { rgb: '059669' } },
+                 fill: { fgColor: { rgb: 'D1FAE5' } },
+                 alignment: C(false), border: bAll('6EE7B7') },
+    ngCell:    { font: { sz: 9, color: { rgb: 'E11D48' } },
+                 fill: { fgColor: { rgb: 'FFE4E6' } },
+                 alignment: C(false), border: bAll('FDA4AF') },
+    footStu:   { font: { bold: true, sz: 9, color: { rgb: '1E3A5F' } },
+                 fill: { fgColor: { rgb: 'DBEAFE' } },
+                 alignment: C(false), border: bMed('93C5FD') },
+    footSte:   { font: { bold: true, sz: 9, color: { rgb: '134E4A' } },
+                 fill: { fgColor: { rgb: 'CCFBF1' } },
+                 alignment: C(false), border: bMed('5EEAD4') },
+    footGrd:   { font: { bold: true, sz: 9, color: { rgb: '92400E' } },
+                 fill: { fgColor: { rgb: 'FEF3C7' } },
+                 alignment: C(false), border: bMed('FCD34D') },
+    data:      { font: { sz: 9 }, alignment: C(false), border: bAll('E5E7EB') },
+    dataAlt:   { font: { sz: 9 }, fill: { fgColor: { rgb: 'F9FAFB' } },
+                 alignment: C(false), border: bAll('E5E7EB') },
+  };
+
+  function setCell(ws, r, c, v, s) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    ws[addr] = { v, s, t: typeof v === 'number' ? 'n' : 's' };
+    if (!ws['!ref']) ws['!ref'] = addr;
+    else {
+      const ref = XLSX.utils.decode_range(ws['!ref']);
+      ref.e.r = Math.max(ref.e.r, r); ref.e.c = Math.max(ref.e.c, c);
+      ws['!ref'] = XLSX.utils.encode_range(ref);
+    }
+  }
+  function merge(ws, r1, c1, r2, c2) {
+    if (!ws['!merges']) ws['!merges'] = [];
+    ws['!merges'].push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+  }
+
+  // ── 날짜 → 월/주 구조 ──
+  const monthMap = {};
+  rows.forEach(r => {
+    const ym = r.d.slice(0, 7);
+    if (!monthMap[ym]) monthMap[ym] = {};
+    const dayNum = new Date(r.d + 'T00:00:00').getDate();
+    const wk = `${Math.ceil(dayNum / 7)}주`;
+    if (!monthMap[ym][wk]) monthMap[ym][wk] = [];
+    monthMap[ym][wk].push(r.d);
+  });
+  const allDates = rows.map(r => r.d);
+  const months = Object.keys(monthMap).sort();
+
+  // 월별 집계 (시트2 공유)
+  const mData = {};
+  rows.forEach(r => {
+    const ym = r.d.slice(0, 7);
+    if (!mData[ym]) mData[ym] = { days: 0, p: 0, count: 0, g: 0 };
+    mData[ym].days++; mData[ym].p += r.p; mData[ym].count += r.total; mData[ym].g += r.g;
+  });
+
+  // ═══════════════════════════════════════════
+  // 시트1: 영아부 출석현황 (학생별 그리드, 반별 색상, 소계)
+  // ═══════════════════════════════════════════
+  const ws1 = {};
+  const totalDateCols = allDates.length;
+  const totalCols1 = 1 + totalDateCols + 3;
+  setCell(ws1, 0, 0, '🌸 송월교회 영아부 출석현황 🌸', S.titleBig);
+  merge(ws1, 0, 0, 0, totalCols1 - 1);
+  ws1['!rows'] = [{ hpt: 36 }, { hpt: 18 }, { hpt: 16 }, { hpt: 16 }];
+
+  // 헤더 3행
+  let hCol = 0;
+  setCell(ws1, 1, hCol, '영아부 출석현황', S.monthHdr); merge(ws1, 1, hCol, 3, hCol); hCol++;
+  months.forEach(ym => {
+    const wks = Object.keys(monthMap[ym]).sort((a, b) => +a[0] - +b[0]);
+    const cnt = wks.reduce((a, w) => a + monthMap[ym][w].length, 0);
+    setCell(ws1, 1, hCol, parseInt(ym.slice(5)) + '월', S.monthHdr);
+    merge(ws1, 1, hCol, 1, hCol + cnt - 1);
+    let wc = hCol;
+    wks.forEach(wk => {
+      const ds = monthMap[ym][wk].slice().sort();
+      setCell(ws1, 2, wc, wk, S.weekHdr);
+      merge(ws1, 2, wc, 2, wc + ds.length - 1);
+      ds.forEach(d => { setCell(ws1, 3, wc, d.slice(5).replace('-', '/'), S.dateHdr); wc++; });
+    });
+    hCol += cnt;
+  });
+  setCell(ws1, 1, hCol, '출석률', S.monthHdr); merge(ws1, 1, hCol, 3, hCol); hCol++;
+  setCell(ws1, 1, hCol, '출석',   S.monthHdr); merge(ws1, 1, hCol, 3, hCol); hCol++;
+  setCell(ws1, 1, hCol, '결석',   S.monthHdr); merge(ws1, 1, hCol, 3, hCol);
+
+  // 전체 합계용
+  const xStu = {}, xStuP = {}, xSteT = {}, xSteP = {}, xGrd = {};
+  allDates.forEach(d => { xStu[d]=0; xStuP[d]=0; xSteT[d]=0; xSteP[d]=0; xGrd[d]=0; });
+
+  let dRow = 4;
+
+  // 반별 학생 데이터 (교사 행 없음, 소계 행 추가)
+  ministryData.forEach((cls, ci) => {
+    const studentsSet = new Set(cls.students);
+    rows.forEach(r => allOf(cls, r.day, r.d).forEach(s => studentsSet.add(s)));
+    const allStudents = [...studentsSet];
+    if (!allStudents.length) return;
+
+    const hst = clsHdrStyle(ci);
+    const nst = clsStyle(ci, false);
+    const sub = clsSubStyle(ci);
+
+    // 반 헤더
+    setCell(ws1, dRow, 0, cls.className + ' · ' + cls.teacher + ' 선생님', hst);
+    merge(ws1, dRow, 0, dRow, totalCols1 - 1);
+    dRow++;
+
+    // 반 소계 집계용
+    const clsStu = {}, clsStuP = {};
+    allDates.forEach(d => { clsStu[d]=0; clsStuP[d]=0; });
+
+    allStudents.forEach((s, si) => {
+      let totalP = 0, totalD = 0;
+      setCell(ws1, dRow, 0, s, nst);
+      allDates.forEach((d, di) => {
+        const dayData = rows.find(r => r.d === d);
+        if (!dayData) { setCell(ws1, dRow, 1 + di, '–', S.naCell); return; }
+        const active = allOf(cls, dayData.day, d).includes(s);
+        if (!active) { setCell(ws1, dRow, 1 + di, '–', S.naCell); return; }
+        totalD++; xStu[d]++; clsStu[d]++;
+        const present = !!((dayData.day[cls.id] || {}).attendance || {})[s];
+        if (present) { totalP++; xStuP[d]++; clsStuP[d]++; setCell(ws1, dRow, 1 + di, '○', S.present); }
+        else { setCell(ws1, dRow, 1 + di, '', S.absent); }
+        xGrd[d] += (((dayData.day[cls.id] || {}).guardians || {})[s]) || 0;
+      });
+      const pct = totalD ? Math.round(totalP / totalD * 100) + '%' : '-';
+      setCell(ws1, dRow, 1 + totalDateCols,     pct,    S.pctCell);
+      setCell(ws1, dRow, 1 + totalDateCols + 1, totalP, S.okCell);
+      setCell(ws1, dRow, 1 + totalDateCols + 2, totalD - totalP, S.ngCell);
+      dRow++;
+    });
+
+    // 반 소계 행
+    setCell(ws1, dRow, 0, cls.className + ' 소계', sub);
+    allDates.forEach((d, di) => {
+      const t = clsStu[d], p = clsStuP[d];
+      setCell(ws1, dRow, 1 + di, t > 0 ? `${p}출/${t}명` : '-', sub);
+    });
+    const cT = allDates.reduce((a,d)=>a+clsStu[d],0);
+    const cP = allDates.reduce((a,d)=>a+clsStuP[d],0);
+    setCell(ws1, dRow, 1+totalDateCols,   cT>0?Math.round(cP/cT*100)+'%':'-', sub);
+    setCell(ws1, dRow, 1+totalDateCols+1, cP,  sub);
+    setCell(ws1, dRow, 1+totalDateCols+2, cT-cP, sub);
+    dRow++;
+  });
+
+  // 스텝 섹션
+  setCell(ws1, dRow, 0, '스텝', S.steHdr);
+  merge(ws1, dRow, 0, dRow, totalCols1 - 1);
+  dRow++;
+
+  const steSub = {}, steSubP = {};
+  allDates.forEach(d => { steSub[d]=0; steSubP[d]=0; });
+
+  staffList.forEach((name) => {
+    let sP = 0, sT = 0;
+    setCell(ws1, dRow, 0, name, S.steRow);
+    allDates.forEach((d, di) => {
+      const dayData = rows.find(r => r.d === d);
+      if (!dayData) { setCell(ws1, dRow, 1 + di, '–', S.naCell); return; }
+      xSteT[d]++; steSub[d]++; sT++;
+      const present = !!((dayData.day.staff || {}).attendance || {})[name];
+      if (present) { xSteP[d]++; steSubP[d]++; sP++; setCell(ws1, dRow, 1 + di, '○', S.stePres); }
+      else { setCell(ws1, dRow, 1 + di, '', S.absent); }
+    });
+    const sPct = sT ? Math.round(sP / sT * 100) + '%' : '-';
+    setCell(ws1, dRow, 1 + totalDateCols,     sPct, S.pctCell);
+    setCell(ws1, dRow, 1 + totalDateCols + 1, sP,   S.okCell);
+    setCell(ws1, dRow, 1 + totalDateCols + 2, sT - sP, S.ngCell);
+    dRow++;
+  });
+
+  // 스텝 소계
+  setCell(ws1, dRow, 0, '스텝 소계', S.steSub);
+  allDates.forEach((d, di) => {
+    const t = steSub[d], p = steSubP[d];
+    setCell(ws1, dRow, 1 + di, t > 0 ? `${p}출/${t}명` : '-', S.steSub);
+  });
+  const stT = allDates.reduce((a,d)=>a+steSub[d],0);
+  const stP = allDates.reduce((a,d)=>a+steSubP[d],0);
+  setCell(ws1, dRow, 1+totalDateCols,   stT>0?Math.round(stP/stT*100)+'%':'-', S.steSub);
+  setCell(ws1, dRow, 1+totalDateCols+1, stP,  S.steSub);
+  setCell(ws1, dRow, 1+totalDateCols+2, stT-stP, S.steSub);
+  dRow++;
+
+  // 전체 합계 — 학생
+  setCell(ws1, dRow, 0, '학생 합계', S.footStu);
+  allDates.forEach((d, di) => {
+    const t = xStu[d], p = xStuP[d];
+    setCell(ws1, dRow, 1 + di, `${p}출/${t}명`, S.footStu);
+  });
+  const fsT = allDates.reduce((a,d)=>a+xStu[d],0);
+  const fsP = allDates.reduce((a,d)=>a+xStuP[d],0);
+  setCell(ws1, dRow, 1+totalDateCols,   fsT>0?Math.round(fsP/fsT*100)+'%':'-', S.footStu);
+  setCell(ws1, dRow, 1+totalDateCols+1, fsP, S.footStu);
+  setCell(ws1, dRow, 1+totalDateCols+2, fsT-fsP, S.footStu);
+  dRow++;
+
+  // 전체 합계 — 스텝
+  setCell(ws1, dRow, 0, '스텝 합계', S.footSte);
+  allDates.forEach((d, di) => {
+    const t = xSteT[d], p = xSteP[d];
+    setCell(ws1, dRow, 1 + di, `${p}출/${t}명`, S.footSte);
+  });
+  const feT = allDates.reduce((a,d)=>a+xSteT[d],0);
+  const feP = allDates.reduce((a,d)=>a+xSteP[d],0);
+  setCell(ws1, dRow, 1+totalDateCols,   feT>0?Math.round(feP/feT*100)+'%':'-', S.footSte);
+  setCell(ws1, dRow, 1+totalDateCols+1, feP, S.footSte);
+  setCell(ws1, dRow, 1+totalDateCols+2, feT-feP, S.footSte);
+  dRow++;
+
+  // 보호자 합계
+  setCell(ws1, dRow, 0, '👪 보호자', S.footGrd);
+  allDates.forEach((d, di) => setCell(ws1, dRow, 1 + di, xGrd[d] + '명', S.footGrd));
+  const totalGrd = allDates.reduce((a, d) => a + xGrd[d], 0);
+  setCell(ws1, dRow, 1 + totalDateCols,     totalGrd + '명', S.footGrd);
+  setCell(ws1, dRow, 1 + totalDateCols + 1, totalGrd,        S.footGrd);
+  setCell(ws1, dRow, 1 + totalDateCols + 2, '',              S.footGrd);
+
+  ws1['!cols'] = [{ wch: 16 }, ...allDates.map(() => ({ wch: 8 })), { wch: 7 }, { wch: 6 }, { wch: 6 }];
+  XLSX.utils.book_append_sheet(wb, ws1, '📋출석현황');
+
+  // ═══════════════════════════════════════════
+  // 시트2: 일자별 현황
+  // ═══════════════════════════════════════════
+  const ws2 = {};
+  const hdrs2 = ['날짜', '학생 출석', '전체 재적', '출석률(%)', '교사 출석', '스텝 출석', '보호자(명)'];
+  setCell(ws2, 0, 0, '🌸 송월교회 영아부 일자별 출석현황', S.titleBig);
+  merge(ws2, 0, 0, 0, hdrs2.length - 1);
+  ws2['!rows'] = [{ hpt: 36 }];
+  hdrs2.forEach((h, i) => setCell(ws2, 1, i, h, S.monthHdr));
+  rows.forEach((r, i) => {
+    const pct = r.total ? Math.round(r.p / r.total * 100) : 0;
+    const tp = ministryData.filter(c => !!(r.day[c.id] || {}).teacherPresent).length;
+    const sp = staffList.filter(n => !!((r.day.staff || {}).attendance || {})[n]).length;
+    const st = i % 2 === 0 ? S.data : S.dataAlt;
+    [r.d, r.p, r.total, pct + '%', tp, sp, r.g].forEach((v, ci) => setCell(ws2, 2 + i, ci, v, st));
+  });
+  // 합계 행
+  const d2r = 2 + rows.length;
+  setCell(ws2, d2r, 0, '합계', S.footStu);
+  const t2p = rows.reduce((a,r)=>a+r.p,0), t2t = rows.reduce((a,r)=>a+r.total,0);
+  const t2pct = t2t ? Math.round(t2p/t2t*100)+'%' : '-';
+  const t2tp = rows.reduce((a,r)=>a+ministryData.filter(c=>!!(r.day[c.id]||{}).teacherPresent).length,0);
+  const t2sp = rows.reduce((a,r)=>a+staffList.filter(n=>!!((r.day.staff||{}).attendance||{})[n]).length,0);
+  const t2g  = rows.reduce((a,r)=>a+r.g,0);
+  ['-', t2p, t2t, t2pct, t2tp, t2sp, t2g].forEach((v,ci) => setCell(ws2, d2r, ci, v, S.footStu));
+  ws2['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, ws2, '📅일자별현황');
+
+  // ═══════════════════════════════════════════
+  // 시트3: 연간 대시보드 (연도별+월별+반별 3개 표)
+  // ═══════════════════════════════════════════
+  const ws3 = {};
+  setCell(ws3, 0, 0, '🌸 송월교회 영아부 연간 출석 대시보드', S.titleBig);
+  merge(ws3, 0, 0, 0, 6);
+  ws3['!rows'] = [{ hpt: 36 }];
+
+  // ① 연도별 집계
+  let r3 = 2;
+  setCell(ws3, r3, 0, '① 연도별 집계', S.subtitle); merge(ws3, r3, 0, r3, 5); r3++;
+  ['연도', '출석일수', '총 출석', '총 재적', '출석률', '보호자'].forEach((h, i) => setCell(ws3, r3, i, h, S.monthHdr));
+  r3++;
+  const yearData = {};
+  rows.forEach(r => {
+    const yr = r.d.slice(0, 4);
+    if (!yearData[yr]) yearData[yr] = { days: 0, p: 0, count: 0, g: 0 };
+    yearData[yr].days++; yearData[yr].p += r.p; yearData[yr].count += r.total; yearData[yr].g += r.g;
+  });
+  const yrKeys = Object.keys(yearData).sort();
+  yrKeys.forEach((yr, i) => {
+    const y = yearData[yr];
+    const pct = y.count ? Math.round(y.p / y.count * 100) : 0;
+    const st = i % 2 === 0 ? S.data : S.dataAlt;
+    [yr + '년', y.days, y.p, y.count, pct + '%', y.g].forEach((v, ci) => setCell(ws3, r3, ci, v, st));
+    r3++;
+  });
+  // 연도 합계
+  const yrTotalP = yrKeys.reduce((a,yr)=>a+yearData[yr].p,0);
+  const yrTotalC = yrKeys.reduce((a,yr)=>a+yearData[yr].count,0);
+  const yrTotalD = yrKeys.reduce((a,yr)=>a+yearData[yr].days,0);
+  const yrTotalG = yrKeys.reduce((a,yr)=>a+yearData[yr].g,0);
+  ['합계', yrTotalD, yrTotalP, yrTotalC, yrTotalC?Math.round(yrTotalP/yrTotalC*100)+'%':'-', yrTotalG]
+    .forEach((v,ci) => setCell(ws3, r3, ci, v, S.footStu));
+  r3 += 2;
+
+  // ② 월별 집계
+  setCell(ws3, r3, 0, '② 월별 집계', S.subtitle); merge(ws3, r3, 0, r3, 5); r3++;
+  ['월', '출석일수', '학생 출석', '학생 재적', '출석률', '보호자'].forEach((h, i) => setCell(ws3, r3, i, h, S.monthHdr));
+  r3++;
+  const mKeys = Object.keys(mData).sort();
+  mKeys.forEach((ym, i) => {
+    const m = mData[ym];
+    const pct = m.count ? Math.round(m.p / m.count * 100) : 0;
+    const st = i % 2 === 0 ? S.data : S.dataAlt;
+    [parseInt(ym.slice(5)) + '월', m.days, m.p, m.count, pct + '%', m.g]
+      .forEach((v, ci) => setCell(ws3, r3, ci, v, st));
+    r3++;
+  });
+  const mTotalP = mKeys.reduce((a,ym)=>a+mData[ym].p,0);
+  const mTotalC = mKeys.reduce((a,ym)=>a+mData[ym].count,0);
+  const mTotalD = mKeys.reduce((a,ym)=>a+mData[ym].days,0);
+  const mTotalG = mKeys.reduce((a,ym)=>a+mData[ym].g,0);
+  ['합계', mTotalD, mTotalP, mTotalC, mTotalC?Math.round(mTotalP/mTotalC*100)+'%':'-', mTotalG]
+    .forEach((v,ci) => setCell(ws3, r3, ci, v, S.footStu));
+  r3 += 2;
+
+  // ③ 반별 누적 현황
+  setCell(ws3, r3, 0, '③ 반별 누적 현황', S.subtitle); merge(ws3, r3, 0, r3, 6); r3++;
+  ['반', '담임', '총 출석', '총 재적', '출석률', '보호자'].forEach((h, i) => setCell(ws3, r3, i, h, S.monthHdr));
+  r3++;
+  let clsTotalP3 = 0, clsTotalC3 = 0, clsTotalG3 = 0;
+  ministryData.forEach((cls, ci) => {
+    let p = 0, count = 0, g = 0;
+    rows.forEach(r => {
+      const cd = (r.day[cls.id] || {}).attendance || {};
+      allOf(cls, r.day, r.d).forEach(s => { count++; if (cd[s]) p++; });
+      g += Object.values((r.day[cls.id] || {}).guardians || {}).reduce((a,v)=>a+(v||0),0);
+    });
+    const pct = count ? Math.round(p / count * 100) : 0;
+    const st = clsStyle(ci, false);
+    clsTotalP3 += p; clsTotalC3 += count; clsTotalG3 += g;
+    [cls.className, cls.teacher, p, count, pct + '%', g].forEach((v, col) => setCell(ws3, r3, col, v, st));
+    r3++;
+  });
+  ['합계', '-', clsTotalP3, clsTotalC3, clsTotalC3?Math.round(clsTotalP3/clsTotalC3*100)+'%':'-', clsTotalG3]
+    .forEach((v,ci) => setCell(ws3, r3, ci, v, S.footStu));
+
+  ws3['!cols'] = [14, 10, 10, 10, 10, 10, 10].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, ws3, '📊연간대시보드');
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `🌸송월교회_영아부_출석현황_${today}.xlsx`);
+  showToast('엑셀 파일이 다운로드되었습니다! 🎉');
+};
+
+// ═══════════════════════════════════════════════════
+// 19. 출석 요약
 // ═══════════════════════════════════════════════════
 
 function buildSummaryText() {
