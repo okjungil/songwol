@@ -83,9 +83,8 @@
       <button onclick="openGuideModal()" title="사용 안내" class="flex items-center justify-center w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-500 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
       </button>
-      <button id="authBtn" onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-colors">
-        <svg id="authBtnIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
-        <span id="authBtnText">로그인</span>
+      <button id="authBtn" onclick="openAuthModal()" title="로그인" class="flex items-center justify-center w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 transition-colors">
+        <svg id="authBtnIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
       </button>
       <button id="pinMgrBtn" onclick="openPinMgr()" class="hidden flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 transition-colors">
         🔑 PIN
@@ -125,14 +124,17 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2 mb-1.5">
             <div class="font-semibold text-zinc-900 text-sm">출석체크</div>
-            <button id="clearAllBtn" onclick="clearAllAttendance()" class="hidden text-xs font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors">전체 해제</button>
+            <div class="flex items-center gap-1.5">
+              <button id="checkAllBtn" onclick="checkAllAttendance()" class="hidden text-xs font-medium px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-colors">전체 체크</button>
+              <button id="clearAllBtn" onclick="clearAllAttendance()" class="hidden text-xs font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors">전체 해제</button>
+            </div>
           </div>
           <div class="space-y-1 text-xs text-zinc-500">
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진을 탭하면 <span class="text-emerald-600 font-medium">출석</span> / <span class="text-zinc-500 font-medium">결석</span> 전환</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 동반은 사진 아래 <strong>👪 숫자</strong>를 눌러 인원 조정 <span class="text-amber-600 font-medium">(막내 기준으로 집계)</span></span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>메모 버튼(📝)으로 기도제목·알레르기 등 기록 가능 <span class="text-amber-600 font-medium">(로그인 필요)</span></span></div>
             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>담당 선생님 <strong>로그인</strong> 후 반 이름 옆 <strong>＋ 버튼</strong>으로 학생 영구 추가 가능</span></div>
-            <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">⚠️</span><span><strong>전체 해제</strong> 버튼(관리자 전용)으로 해당일 전체 출석을 한 번에 초기화</span></div>
+            <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">⚠️</span><span><strong>전체 체크 / 전체 해제</strong> 버튼(관리자 전용)으로 해당일 전체 출석을 한 번에 조정</span></div>
           </div>
         </div>
       </div>
@@ -181,7 +183,7 @@
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드에서 날짜를 누르면 해당일 출석 요약 팝업 — 교사도 동그라미(●)로 표시</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>일자별 출석 현황에서 날짜를 누르면 상세 팝업 열람 가능</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 집계는 <strong>막내 기준</strong>으로 산정됩니다</span></div>
-            <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong>로 일자별·월별·반별·학생별 4개 시트 저장</span></div>
+            <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong> 3개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">📋출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📅일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📊연간대시보드</code></span></div>
             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사</span></div>
           </div>
         </div>
@@ -392,17 +394,17 @@
 </div>
 
 <!-- PIN 관리 모달 (관리자 전용) -->
-<div id="pinMgrModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 hidden" onclick="if(event.target===this)closePinMgr()">
+<div id="pinMgrModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-3 hidden" onclick="if(event.target===this)closePinMgr()">
   <div class="modal-enter bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-    <div class="px-5 pt-5 pb-4 border-b border-zinc-100 flex items-center justify-between">
-      <h3 class="text-base font-semibold text-zinc-900">🔑 PIN 관리 (관리자 전용)</h3>
-      <button onclick="closePinMgr()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400">
+    <div class="px-4 pt-4 pb-3 border-b border-zinc-100 flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-zinc-900">🔑 PIN 관리 (관리자 전용)</h3>
+      <button onclick="closePinMgr()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="p-4 overflow-y-auto max-h-[70vh]">
-      <p class="text-xs text-zinc-400 mb-3">각 반 PIN을 수정하세요. 4자리 숫자를 입력하고 저장을 누르세요.</p>
-      <div id="pinMgrBody" class="space-y-2"></div>
+    <div class="px-3 py-2 overflow-y-auto max-h-[80vh]">
+      <p class="text-[11px] text-zinc-400 mb-2">각 반 PIN을 수정하세요. 4자리 숫자 입력 후 저장하세요.</p>
+      <div id="pinMgrBody" class="space-y-1"></div>
     </div>
   </div>
 </div>
@@ -481,7 +483,7 @@ const ministryData = [
   { id:"purple", className:"보라반",  teacher:"조혜숙",  students:["정윤재","신온리","정유나","최승아","오하임","정은우","오서준","이겸","전지한"] }
 ];
 
-const staffList = ["박성은","김명훈","유정일","강지선","김여진","최승희","노규훈","안다슬"];
+const staffList = ["박성은","김명훈","강지선","김여진","최승희","노규훈","안다슬"];
 
 // ═══════════════════════════════════════════════════
 // 3. 기본 사진 (원본 유지)
@@ -1014,6 +1016,26 @@ window.setAllStaff = status => {
   patchDay({ staff: { attendance: a } });
 };
 
+window.checkAllAttendance = () => {
+  if (!currentRole) return showReadonlyToast();
+  if (currentRole !== 'admin') {
+    showToast('관리자만 전체 체크할 수 있습니다.', 'error');
+    return;
+  }
+  if (!confirm('오늘 날짜의 전체 출석을 모두 체크하시겠습니까?')) return;
+  const patch = {};
+  ministryData.forEach(cls => {
+    const att = {};
+    allOf(cls, currentAttendanceData).forEach(s => att[s] = true);
+    patch[cls.id] = { attendance: att, teacherPresent: true };
+  });
+  const staffAtt = {};
+  staffList.forEach(n => staffAtt[n] = true);
+  patch.staff = { attendance: staffAtt };
+  patchDay(patch);
+  showToast('전체 출석체크 완료!');
+};
+
 window.clearAllAttendance = () => {
   if (!currentRole) return showReadonlyToast();
   if (currentRole !== 'admin') {
@@ -1505,9 +1527,9 @@ function renderStudentGrid() {
   footHtml += makeGuardianRow();
 
   el.innerHTML = `
-    <div class="overflow-x-auto -mx-4 px-4">
+    <div class="overflow-x-auto -mx-4 px-4" style="max-height:70vh;overflow-y:auto">
       <table class="border-collapse text-xs w-max">
-        <thead>
+        <thead class="sticky top-0 z-20">
           <tr>${h1}</tr>
           <tr>${h2}</tr>
           <tr>${h3}</tr>
@@ -1754,8 +1776,9 @@ window.downloadExcel = async function() {
 
     const rowCount = allStudents.length + 1; // 학생 + 교사 1
 
-    // 반 이름 셀 (반 column, 학생수+교사 행 통합)
-    setCell(ws1, dRow, 0, cls.className + '\n' + cls.teacher, hst);
+    // 반 이름 셀 (반 column, 학생수+교사 행 통합) — 반이름/교사 2줄
+    const hstWrap = Object.assign({}, hst, { alignment: { horizontal: 'center', vertical: 'center', wrapText: true } });
+    setCell(ws1, dRow, 0, cls.className + '\n' + cls.teacher, hstWrap);
     if (rowCount > 1) merge(ws1, dRow, 0, dRow + rowCount - 1, 0);
 
     // 교사 행 (첫 번째)
@@ -1833,14 +1856,14 @@ window.downloadExcel = async function() {
     setCell(ws1, dRow, 1, '',    labelSt);
     allDates.forEach((d, di) => {
       const t = totals[d], p = presents[d];
-      setCell(ws1, dRow, 2 + di, t > 0 ? p : '-', dateSt);
+      setCell(ws1, dRow, 2 + di, t > 0 ? p + '/' + t : '-', dateSt);
     });
     const aT = allDates.reduce((a,d)=>a+totals[d],0);
     const aP = allDates.reduce((a,d)=>a+presents[d],0);
-    const aPct = aT ? Math.round(aP/aT*100)+'%' : '-';
-    setCell(ws1, dRow, NC,   aPct,    presSt);
-    setCell(ws1, dRow, NC+1, aP,      presSt);
-    setCell(ws1, dRow, NC+2, aT-aP,   presSt);
+    // 마지막 3칸: 합계를 "출석/제적" 형식으로 (출석률, 출석, 결석 대신)
+    setCell(ws1, dRow, NC,   aP + '/' + aT,  presSt);
+    setCell(ws1, dRow, NC+1, '',              presSt);
+    setCell(ws1, dRow, NC+2, '',              presSt);
     dRow++;
   };
 
@@ -1851,10 +1874,10 @@ window.downloadExcel = async function() {
   // 보호자 합계
   setCell(ws1, dRow, 0, '보호자', S.footGrd);
   setCell(ws1, dRow, 1, '',       S.footGrd);
-  allDates.forEach((d, di) => setCell(ws1, dRow, 2 + di, xGrd[d], S.footGrd));
+  allDates.forEach((d, di) => setCell(ws1, dRow, 2 + di, xGrd[d] || '-', S.footGrd));
   const totalGrd = allDates.reduce((a, d) => a + xGrd[d], 0);
-  setCell(ws1, dRow, NC,   '-',      S.footGrd);
-  setCell(ws1, dRow, NC+1, totalGrd, S.footGrd);
+  setCell(ws1, dRow, NC,   totalGrd, S.footGrd);
+  setCell(ws1, dRow, NC+1, '',       S.footGrd);
   setCell(ws1, dRow, NC+2, '',       S.footGrd);
 
   ws1['!cols'] = [{ wch: 12 }, { wch: 10 }, ...allDates.map(() => ({ wch: 6 })), { wch: 7 }, { wch: 5 }, { wch: 5 }];
@@ -2021,27 +2044,30 @@ window.copySummaryText = function() {
 
 function updateAuthUI() {
   const authStatusLine = document.getElementById('authStatusLine');
-  const authBtnText = document.getElementById('authBtnText');
-  const authBtnIcon = document.getElementById('authBtnIcon');
+  const authBtn = document.getElementById('authBtn');
 
   if (currentRole) {
     authStatusLine.textContent = getRoleLabel();
     authStatusLine.className = 'text-xs text-emerald-600 leading-tight mt-0.5 font-medium';
-    authBtnText.textContent = '로그아웃';
-    authBtnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>';
+    if (authBtn) authBtn.title = '로그아웃';
+    document.getElementById('authBtnIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>';
     const pinBtn = document.getElementById('pinMgrBtn');
     if (pinBtn) pinBtn.classList.toggle('hidden', currentRole !== 'admin');
     const clearBtn = document.getElementById('clearAllBtn');
     if (clearBtn) clearBtn.classList.toggle('hidden', currentRole !== 'admin');
+    const checkBtn = document.getElementById('checkAllBtn');
+    if (checkBtn) checkBtn.classList.toggle('hidden', currentRole !== 'admin');
   } else {
     authStatusLine.textContent = '보기 전용 · 로그인하면 수정 가능';
     authStatusLine.className = 'text-xs text-zinc-400 leading-tight mt-0.5';
-    authBtnText.textContent = '로그인';
-    authBtnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>';
+    if (authBtn) authBtn.title = '로그인';
+    document.getElementById('authBtnIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>';
     const pinBtn = document.getElementById('pinMgrBtn');
     if (pinBtn) pinBtn.classList.add('hidden');
     const clearBtn = document.getElementById('clearAllBtn');
     if (clearBtn) clearBtn.classList.add('hidden');
+    const checkBtn = document.getElementById('checkAllBtn');
+    if (checkBtn) checkBtn.classList.add('hidden');
   }
 }
 
@@ -2139,12 +2165,12 @@ window.openPinMgr = function() {
     { id: 'staff', label: '스텝' },
   ];
   document.getElementById('pinMgrBody').innerHTML = roles.map(r => `
-    <div class="flex items-center gap-2">
-      <span class="text-xs text-zinc-600 w-32 shrink-0">${r.label}</span>
+    <div class="flex items-center gap-1.5">
+      <span class="text-[11px] text-zinc-600 w-28 shrink-0 truncate">${r.label}</span>
       <input type="number" id="pin_${r.id}" value="${CLASS_PINS[r.id] || ''}"
         maxlength="4" placeholder="4자리"
-        class="flex-1 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <button onclick="savePin('${r.id}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors">저장</button>
+        class="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button onclick="savePin('${r.id}')" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg transition-colors shrink-0">저장</button>
     </div>`).join('');
   document.getElementById('pinMgrModal').classList.remove('hidden');
 };
@@ -2314,46 +2340,40 @@ window.openDayDetail = d => {
   if (!r) return;
   const day = r.day;
   let tt = 0;
-  const row = (label, names, cls) => `<div class="text-xs"><span class="font-medium ${cls}">${label}</span> ${names.join(', ') || '없음'}</div>`;
-  const cards = ministryData.map(cls => {
+
+  // 카카오톡 형식 텍스트 생성
+  const lines = ministryData.map(cls => {
     const cd = (day[cls.id] || {}).attendance || {};
     const tp = !!(day[cls.id] || {}).teacherPresent;
     const list = allOf(cls, day);
-    const pl = list.filter(s => cd[s]), al = list.filter(s => !cd[s]);
+    const pl = list.filter(s => cd[s]);
     const gm = (day[cls.id] || {}).guardians || {};
+    const g = list.reduce((a, s) => a + (gm[s] || 0), 0);
     if (tp) tt++;
-    return `
-    <div class="p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5 space-y-1">
-      <div class="flex items-center justify-between">
-        <span class="font-medium text-sm text-zinc-900">${cls.className}</span>
-        <span class="tabular-nums text-sm font-semibold text-blue-600">${pl.length}<span class="text-zinc-400 font-normal"> / ${list.length}명</span></span>
-      </div>
-      <div class="text-xs ${tp ? 'text-emerald-700' : 'text-rose-600'}">교사 ${cls.teacher} ${tp ? '출석' : '결석'}</div>
-      ${row('출석', pl, 'text-emerald-700')}
-      ${row('결석', al, 'text-rose-600')}
-      <div class="text-xs text-amber-700">👪 보호자 ${list.reduce((a,s)=>a+(gm[s]||0),0)}명</div>
-    </div>`;
-  }).join('');
+    return `▪️ ${cls.className} (${cls.teacher} ${tp ? '출석' : '결석'}, ${pl.length}/${list.length}명, 보호자 ${g}명)\n  - 출석: ${pl.length ? pl.join(', ') : '없음'}`;
+  });
   const sa = (day.staff || {}).attendance || {};
   const sp = staffList.filter(n => sa[n]), sn = staffList.filter(n => !sa[n]);
-  const statBox = (label, val, cls) => `<div class="${cls} p-3 rounded-xl ring-1 ring-black/5 text-center"><div class="text-xs text-zinc-500 mb-1">${label}</div><div class="text-xl font-semibold tabular-nums">${val}</div></div>`;
-  showDetail(`${dayLabel(d)} 현황`, `
-    <div class="grid grid-cols-3 gap-2">
-      ${statBox('학생 출석', r.p + '/' + r.total + '명', 'bg-emerald-50 text-emerald-700')}
-      ${statBox('교사·스텝', (tt + sp.length) + '/' + (ministryData.length + staffList.length) + '명', 'bg-blue-50 text-blue-700')}
-      ${statBox('보호자', r.g + '명', 'bg-amber-50 text-amber-700')}
-    </div>
-    <div class="space-y-2">
-      ${cards}
-      <div class="p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5 space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="font-medium text-sm">스텝</span>
-          <span class="tabular-nums text-sm font-semibold text-blue-600">${sp.length}/${staffList.length}명</span>
-        </div>
-        <div class="text-xs text-emerald-700"><span class="font-medium">출석</span> ${sp.join(', ') || '없음'}</div>
-        <div class="text-xs text-rose-600"><span class="font-medium">결석</span> ${sn.join(', ') || '없음'}</div>
-      </div>
-    </div>`);
+  lines.push(`▪️ 스텝 (${sp.length}/${staffList.length}명)\n  - 출석: ${sp.length ? sp.join(', ') : '없음'}`);
+  const kakaoText = `[송월교회 영아부 출석현황]\n📅 날짜: ${d}\n✨ 학생 출석: ${r.p} / ${r.total}명\n👩‍🏫 교사·스텝: ${tt + sp.length} / ${ministryData.length + staffList.length}명\n👪 보호자: ${r.g}명\n\n` + lines.join('\n');
+
+  const copyKakao = () => {
+    const fallback = () => {
+      const ta = document.createElement('textarea'); ta.value = kakaoText; ta.style.position = 'fixed';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); showToast('복사되었습니다!'); } catch(e) { showToast('복사 실패'); }
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(kakaoText).then(() => showToast('카카오톡 형식 복사 완료!')).catch(fallback);
+    else fallback();
+  };
+  window._dayDetailCopy = copyKakao;
+
+  showDetail(`${dayLabel(d)} 출석현황`, `
+    <pre id="dayDetailPre" class="whitespace-pre-wrap break-words text-xs bg-zinc-50 ring-1 ring-black/5 rounded-xl p-3 font-sans leading-relaxed text-zinc-700 mb-3"></pre>
+    <button onclick="window._dayDetailCopy()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition-colors">📋 카카오톡 형식 복사</button>`);
+  document.getElementById('dayDetailPre').textContent = kakaoText;
 };
 
 window.openClassDetail = cid => {
