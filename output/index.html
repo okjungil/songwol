@@ -134,8 +134,9 @@
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 동반은 사진 아래 <strong>👪 숫자</strong>를 눌러 인원 조정 <span class="text-amber-600 font-medium">(막내 기준으로 집계)</span></span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>메모 버튼(📝)으로 기도제목·알레르기 등 기록 가능 <span class="text-amber-600 font-medium">(로그인 필요)</span></span></div>
             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>담당 선생님 <strong>로그인</strong> 후 반 이름 옆 <strong>＋ 버튼</strong>으로 학생 영구 추가 가능</span></div>
-            <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">⚠️</span><span><strong>전체 체크 / 전체 해제</strong> 버튼(관리자 전용)으로 해당일 전체 출석을 한 번에 조정</span></div>
-          </div>
+             <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">⚠️</span><span><strong>전체 체크 / 전체 해제</strong> 버튼(관리자 전용)으로 해당일 전체 출석을 한 번에 조정</span></div>
+             <div class="flex items-start gap-1.5 mt-1 pt-1 border-t border-zinc-100 text-red-600 font-medium"><span class="shrink-0">⭐</span><span><strong>교사 출석 필수!</strong> 반 이름 아래 교사 이름 버튼을 눌러 <span class="underline underline-offset-2">교사 출석을 반드시 체크</span>하세요. 미체크 시 교사 결석으로 집계됩니다.</span></div>
+           </div>
         </div>
       </div>
     </div>
@@ -183,8 +184,9 @@
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드에서 날짜를 누르면 해당일 출석 요약 팝업 — 교사도 동그라미(●)로 표시</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>일자별 출석 현황에서 날짜를 누르면 상세 팝업 열람 가능</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 집계는 <strong>막내 기준</strong>으로 산정됩니다</span></div>
-            <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong> 3개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">📋출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📅일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📊연간대시보드</code></span></div>
-            <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사</span></div>
+             <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong> 3개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">📋출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📅일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📊연간대시보드</code></span></div>
+             <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사</span></div>
+             <div class="flex items-start gap-1.5 text-zinc-500"><span class="text-zinc-400 shrink-0">•</span><span>학생 추가·제적 처리는 해당일 이후부터 재적에 반영됩니다. <span class="text-zinc-600 font-medium">제적 인원수도 추가된 날짜 이후만 카운트</span>됩니다.</span></div>
           </div>
         </div>
       </div>
@@ -478,12 +480,12 @@ const ministryData = [
   { id:"orange", className:"주황반",  teacher:"장미화",  students:["박유주","홍유안","윤지아","김예안"] },
   { id:"yellow", className:"노랑반",  teacher:"신혜연",  students:["이유정","박하온","정유건","김시우","윤찬","황준우","김이현"] },
   { id:"green",  className:"초록반",  teacher:"박복이",  students:["박엘림","노지아","이도윤","홍유주","이준","하준호","하지호","김하진"] },
-  { id:"blue1",  className:"파랑1반", teacher:"신영하",  students:["박지은","김예음","김에담","오예온"] },
+  { id:"blue1",  className:"파랑1반", teacher:"신영하",  students:["박지은","김예음","김예담","오예온"] },
   { id:"blue2",  className:"파랑2반", teacher:"김정임",  students:["서하빈","오유진","심유하"] },
   { id:"purple", className:"보라반",  teacher:"조혜숙",  students:["정윤재","신온리","정유나","최승아","오하임","정은우","오서준","이겸","전지한"] }
 ];
 
-const staffList = ["박성은","김명훈","강지선","김여진","최승희","노규훈","안다슬"];
+const staffList = ["박성은","김명훈","유정일","강지선","김여진","최승희","노규훈","안다슬"];
 
 // ═══════════════════════════════════════════════════
 // 3. 기본 사진 (원본 유지)
@@ -565,6 +567,13 @@ async function firebaseBackend() {
         if (n !== name) return e;
         return { name: n, joinDate: e.joinDate || '2000-01-01', leaveDate: leaveDate || new Date().toISOString().slice(0,10) };
       });
+      await F.setDoc(rosterDoc(cid), { extra: updated });
+    },
+    deleteFromRoster: async (cid, name) => {
+      await ensureAuth();
+      const d = await F.getDoc(rosterDoc(cid));
+      const cur = d.exists() ? (d.data().extra || []) : [];
+      const updated = cur.filter(e => (e.name || e) !== name);
       await F.setDoc(rosterDoc(cid), { extra: updated });
     }
   };
@@ -772,7 +781,15 @@ function setupRealtimeListener() {
       renderApp();
     });
     if (B.watchRoster) {
-      B.watchRoster(roster => { remoteRoster = roster; renderApp(); });
+      B.watchRoster(roster => {
+        remoteRoster = roster;
+        // 보라반(purple) 유정일 제적기록 완전삭제 (1회성 정리)
+        const purpleRoster = (roster.purple || {}).extra || [];
+        if (purpleRoster.some(e => (e.name || e) === '유정일') && B.deleteFromRoster) {
+          B.deleteFromRoster('purple', '유정일').catch(() => {});
+        }
+        renderApp();
+      });
     }
     return;
   }
@@ -1281,7 +1298,7 @@ function renderHistory() {
   el.innerHTML = rows.map(r => {
     const pct = r.total ? Math.round(r.p / r.total * 100) : 0;
     return `
-    <div onclick="openDayDetail('${r.d}')"
+    <div onclick="openDayDetailCard('${r.d}')"
       class="p-3 bg-zinc-50 hover:bg-blue-50 rounded-xl ring-1 ring-black/5 cursor-pointer transition-colors">
       <div class="flex items-center justify-between">
         <span class="font-medium text-sm text-zinc-900">${dayLabel(r.d)}</span>
@@ -1391,9 +1408,9 @@ function renderStudentGrid() {
     });
     const tPct = tT ? Math.round(tP / tT * 100) + '%' : '-';
 
-    // 반 구분 헤더 (파란 박스) — 교사 별도 행으로 표시
-    bodyHtml += `<tr>
-      <td colspan="${clsColspan}" class="border border-zinc-200 bg-indigo-50 px-3 py-1 text-[11px] font-bold text-indigo-800 ${STIC}" style="left:0">
+    // 반 구분 헤더 (파란 박스) — 교사 별도 행으로 표시, 세로 스크롤시 고정
+    bodyHtml += `<tr class="cls-header-row">
+      <td colspan="${clsColspan}" class="border border-zinc-200 bg-indigo-50 px-3 py-1 text-[11px] font-bold text-indigo-800 sticky left-0 z-[15]" style="left:0">
         ${cls.className} <span class="font-normal text-indigo-400">· ${cls.teacher} 선생님</span>
       </td>
     </tr>`;
@@ -1453,8 +1470,8 @@ function renderStudentGrid() {
   });
 
   // 스텝 구분 헤더
-  bodyHtml += `<tr>
-    <td colspan="${clsColspan}" class="border border-zinc-200 bg-teal-50 px-3 py-1 text-[11px] font-bold text-teal-800 ${STIC}" style="left:0">
+  bodyHtml += `<tr class="cls-header-row">
+    <td colspan="${clsColspan}" class="border border-zinc-200 bg-teal-50 px-3 py-1 text-[11px] font-bold text-teal-800 sticky left-0 z-[15]" style="left:0">
       스텝
     </td>
   </tr>`;
@@ -1527,7 +1544,7 @@ function renderStudentGrid() {
   footHtml += makeGuardianRow();
 
   el.innerHTML = `
-    <div class="overflow-x-auto -mx-4 px-4" style="max-height:70vh;overflow-y:auto">
+    <div class="overflow-x-auto -mx-4 px-4" style="max-height:70vh;overflow-y:auto" id="studentGridScroll">
       <table class="border-collapse text-xs w-max">
         <thead class="sticky top-0 z-20">
           <tr>${h1}</tr>
@@ -1538,6 +1555,20 @@ function renderStudentGrid() {
         <tfoot>${footHtml}</tfoot>
       </table>
     </div>`;
+
+  // 반 구분 행을 thead 높이 바로 아래 sticky 고정
+  requestAnimationFrame(() => {
+    const scroll = document.getElementById('studentGridScroll');
+    if (!scroll) return;
+    const thead = scroll.querySelector('thead');
+    if (!thead) return;
+    const theadH = thead.getBoundingClientRect().height;
+    scroll.querySelectorAll('tr.cls-header-row').forEach(tr => {
+      tr.style.position = 'sticky';
+      tr.style.top = theadH + 'px';
+      tr.style.zIndex = '12';
+    });
+  });
 }
 
 // ═══════════════════════════════════════════════════
@@ -1881,6 +1912,7 @@ window.downloadExcel = async function() {
   setCell(ws1, dRow, NC+2, '',       S.footGrd);
 
   ws1['!cols'] = [{ wch: 12 }, { wch: 10 }, ...allDates.map(() => ({ wch: 6 })), { wch: 7 }, { wch: 5 }, { wch: 5 }];
+  ws1['!freeze'] = { xSplit: 2, ySplit: 4 }; // 반+이름 열 고정, 타이틀+헤더 3행 고정
   XLSX.utils.book_append_sheet(wb, ws1, '📋출석현황');
 
   // ═══════════════════════════════════════════
@@ -2164,14 +2196,21 @@ window.openPinMgr = function() {
     ...ministryData.map(c => ({ id: c.id, label: c.className + ' (' + c.teacher + ')' })),
     { id: 'staff', label: '스텝' },
   ];
-  document.getElementById('pinMgrBody').innerHTML = roles.map(r => `
+  document.getElementById('pinMgrBody').innerHTML = roles.map(r => {
+    const isAdmin = r.id === 'admin';
+    return `
     <div class="flex items-center gap-1.5">
       <span class="text-[11px] text-zinc-600 w-28 shrink-0 truncate">${r.label}</span>
-      <input type="number" id="pin_${r.id}" value="${CLASS_PINS[r.id] || ''}"
-        maxlength="4" placeholder="4자리"
-        class="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <button onclick="savePin('${r.id}')" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg transition-colors shrink-0">저장</button>
-    </div>`).join('');
+      ${isAdmin
+        ? `<span class="flex-1 min-w-0 bg-zinc-100 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest text-zinc-400 select-none">••••</span>
+           <span class="text-[11px] text-zinc-400 px-2.5 py-1.5 shrink-0">변경불가</span>`
+        : `<input type="number" id="pin_${r.id}" value="${CLASS_PINS[r.id] || ''}"
+             maxlength="4" placeholder="4자리"
+             class="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500">
+           <button onclick="savePin('${r.id}')" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg transition-colors shrink-0">저장</button>`
+      }
+    </div>`;
+  }).join('');
   document.getElementById('pinMgrModal').classList.remove('hidden');
 };
 
@@ -2181,6 +2220,7 @@ window.closePinMgr = () => {
 
 window.savePin = function(roleId) {
   if (currentRole !== 'admin') return;
+  if (roleId === 'admin') { showToast('관리자 PIN은 변경할 수 없습니다.', 'error'); return; }
   const val = (document.getElementById('pin_' + roleId).value || '').trim();
   if (!/^\d{4}$/.test(val)) return showToast('4자리 숫자를 입력하세요.');
   savePinOverride(roleId, val);
@@ -2374,6 +2414,55 @@ window.openDayDetail = d => {
     <pre id="dayDetailPre" class="whitespace-pre-wrap break-words text-xs bg-zinc-50 ring-1 ring-black/5 rounded-xl p-3 font-sans leading-relaxed text-zinc-700 mb-3"></pre>
     <button onclick="window._dayDetailCopy()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition-colors">📋 카카오톡 형식 복사</button>`);
   document.getElementById('dayDetailPre').textContent = kakaoText;
+};
+
+// 일자별 출석현황 카드 클릭 팝업 — 기존 카드 형식
+window.openDayDetailCard = d => {
+  const r = checkedDays().find(x => x.d === d);
+  if (!r) return;
+  const day = r.day;
+  let tt = 0;
+  const row = (label, names, cls) =>
+    `<div class="text-xs"><span class="font-medium ${cls}">${label}</span> ${names.join(', ') || '없음'}</div>`;
+  const cards = ministryData.map(cls => {
+    const cd = (day[cls.id] || {}).attendance || {};
+    const tp = !!(day[cls.id] || {}).teacherPresent;
+    const list = allOf(cls, day);
+    const pl = list.filter(s => cd[s]), al = list.filter(s => !cd[s]);
+    const gm = (day[cls.id] || {}).guardians || {};
+    if (tp) tt++;
+    return `<div class="p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5 space-y-1">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-sm text-zinc-900">${cls.className}</span>
+        <span class="tabular-nums text-sm font-semibold text-blue-600">${pl.length}<span class="text-zinc-400 font-normal"> / ${list.length}명</span></span>
+      </div>
+      <div class="text-xs ${tp ? 'text-emerald-700' : 'text-rose-600'}">교사 ${cls.teacher} ${tp ? '출석' : '결석'}</div>
+      ${row('출석', pl, 'text-emerald-700')}
+      ${row('결석', al, 'text-rose-600')}
+      <div class="text-xs text-amber-700">👪 보호자 ${list.reduce((a,s)=>a+(gm[s]||0),0)}명</div>
+    </div>`;
+  }).join('');
+  const sa = (day.staff || {}).attendance || {};
+  const sp = staffList.filter(n => sa[n]), sn = staffList.filter(n => !sa[n]);
+  const statBox = (label, val, cls) =>
+    `<div class="${cls} p-3 rounded-xl ring-1 ring-black/5 text-center"><div class="text-xs text-zinc-500 mb-1">${label}</div><div class="text-xl font-semibold tabular-nums">${val}</div></div>`;
+  showDetail(`${dayLabel(d)} 현황`, `
+    <div class="grid grid-cols-3 gap-2">
+      ${statBox('학생 출석', r.p + '/' + r.total + '명', 'bg-emerald-50 text-emerald-700')}
+      ${statBox('교사·스텝', (tt + sp.length) + '/' + (ministryData.length + staffList.length) + '명', 'bg-blue-50 text-blue-700')}
+      ${statBox('보호자', r.g + '명', 'bg-amber-50 text-amber-700')}
+    </div>
+    <div class="space-y-2">
+      ${cards}
+      <div class="p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5 space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="font-medium text-sm">스텝</span>
+          <span class="tabular-nums text-sm font-semibold text-blue-600">${sp.length}<span class="text-zinc-400 font-normal"> / ${staffList.length}명</span></span>
+        </div>
+        <div class="text-xs text-emerald-700"><span class="font-medium">출석</span> ${sp.join(', ') || '없음'}</div>
+        <div class="text-xs text-rose-600"><span class="font-medium">결석</span> ${sn.join(', ') || '없음'}</div>
+      </div>
+    </div>`);
 };
 
 window.openClassDetail = cid => {
