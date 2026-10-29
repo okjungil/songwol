@@ -765,7 +765,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       // 선택한 날짜 기준 가장 가까운 지난 일요일로 보정
       d.setDate(d.getDate() - d.getDay());
       this.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      showToast('일요일만 선택할 수 있습니다.');
+      showToast('주일을 선택 하세요.');
     }
     setupRealtimeListener();
   });
