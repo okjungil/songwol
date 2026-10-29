@@ -750,9 +750,25 @@ function getStudentPhoto(name) {
 window.addEventListener('DOMContentLoaded', async () => {
   restoreSession();
   const t = new Date();
+  // 일요일(0)이 아닌 경우 가장 가까운 지난 일요일로 이동
+  const dayOfWeek = t.getDay(); // 0=일, 1=월 ... 6=토
+  if (dayOfWeek !== 0) t.setDate(t.getDate() - dayOfWeek);
   const dateStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   document.getElementById('attendanceDate').value = dateStr;
-  document.getElementById('attendanceDate').addEventListener('change', setupRealtimeListener);
+
+  // 날짜 변경 시 일요일만 허용
+  document.getElementById('attendanceDate').addEventListener('change', function() {
+    const val = this.value;
+    if (!val) { setupRealtimeListener(); return; }
+    const d = new Date(val + 'T00:00:00');
+    if (d.getDay() !== 0) {
+      // 선택한 날짜 기준 가장 가까운 지난 일요일로 보정
+      d.setDate(d.getDate() - d.getDay());
+      this.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      showToast('일요일만 선택할 수 있습니다.');
+    }
+    setupRealtimeListener();
+  });
 
   switchTab('check');
   setupRealtimeListener();
