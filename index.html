@@ -100,7 +100,7 @@
       <input type="date" id="attendanceDate" class="w-32 shrink-0 text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 tabular-nums">
       <button onclick="openSummary()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200 transition-colors text-center">출석요약</button>
       <button onclick="openAbsentReasonSummary()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors text-center">결석사유</button>
-      <button id="toggleReasonsBtn" onclick="toggleShowReasons()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors text-center">사유 ON</button>
+      <button id="toggleReasonsBtn" onclick="toggleShowReasons()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors text-center">사유ON</button>
       <button id="syncBadge" onclick="onBadgeClick()" title="실시간 연동 중" class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-base leading-none">⏳</button>
     </div>
     <nav class="flex gap-1 pb-0">
@@ -130,13 +130,12 @@
             </div>
           </div>
             <div class="space-y-1 text-xs text-zinc-500">
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진을 탭하면 <span class="text-emerald-600 font-medium">출석</span> / <span class="text-zinc-500 font-medium">결석</span> 전환</span></div>
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 동반은 사진 아래 <strong>👪 숫자</strong>를 눌러 인원 조정 <span class="text-amber-600 font-medium">(막내 기준으로 집계)</span></span></div>
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>메모 버튼(📝)으로 기도제목·알레르기 등 기록 가능 <span class="text-amber-600 font-medium">(로그인 필요)</span></span></div>
-              <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">•</span><span>결석 학생 카드 아래 <strong>사유 입력</strong> 버튼으로 결석 사유 기록 — 상단 <strong>결석사유</strong> 버튼으로 전체 내역 확인</span></div>
-              <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>담당 선생님 <strong>로그인</strong> 후 반 이름 옆 <strong>＋ 버튼</strong>으로 학생 영구 추가 가능</span></div>
-              <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">⚠️</span><span><strong>전체 체크 / 전체 해제</strong> 버튼(관리자 전용)으로 해당일 전체 출석을 한 번에 조정</span></div>
-              <div class="flex items-start gap-1.5 mt-1 pt-1 border-t border-zinc-100 text-red-600 font-medium"><span class="shrink-0">⭐</span><span><strong>교사 출석 필수!</strong> 반 이름 아래 교사 이름 버튼을 눌러 <span class="underline underline-offset-2">교사 출석을 반드시 체크</span>하세요.</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진 탭 → <span class="text-emerald-600 font-medium">출석 ◯</span> / <span class="text-zinc-400 font-medium">결석</span> 전환 (로그인 필요)</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>결석 카드 하단 <strong>사유 입력</strong> 버튼으로 결석 사유 기록 · 상단 <strong>결석사유</strong> 버튼으로 전체 확인</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 동반 시 사진 아래 <strong>👪 숫자</strong> 탭 → 인원 조정 <span class="text-amber-600 font-medium">(영아부 막내 기준 집계)</span></span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 카드 우측 <strong>📝</strong> 버튼 → 기도제목·알레르기 등 메모 저장 <span class="text-amber-600 font-medium">(로그인 필요)</span></span></div>
+              <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>로그인 후 반 이름 옆 <strong>＋</strong> 버튼으로 신입생 영구 추가 가능 · <strong>전체 체크/해제</strong>는 관리자 전용</span></div>
+              <div class="flex items-start gap-1.5 mt-1 pt-1 border-t border-zinc-100 text-red-600 font-medium"><span class="shrink-0">⭐</span><span><strong>교사 출석 필수!</strong> 반 이름 바로 아래 교사 이름 버튼을 눌러 교사 출석을 반드시 체크하세요.</span></div>
             </div>
         </div>
       </div>
@@ -155,8 +154,9 @@
           <div class="font-semibold text-zinc-900 text-sm mb-1.5">검색</div>
           <div class="space-y-1 text-xs text-zinc-500">
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>이름 또는 반 이름으로 학생·교사·스텝 검색</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>검색 결과에서 바로 출석 체크 및 메모 작성 가능</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진을 누르면 개인 출석 이력 확인 가능</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>검색 결과에서 바로 출석 체크·결석 사유 입력·메모 작성 가능 (로그인 필요)</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>학생 사진 탭 → 개인 출석 이력 및 결석 사유 확인</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>검색어 없이 두면 전체 명단이 표시됩니다</span></div>
           </div>
         </div>
       </div>
@@ -180,13 +180,12 @@
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-zinc-900 text-sm mb-1.5">현황</div>
             <div class="space-y-1 text-xs text-zinc-500">
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>전체·반별 출석 통계 및 일자별 이력 확인</span></div>
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>반 이름을 누르면 반별 상세 출석 현황 팝업</span></div>
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드: 날짜 클릭 → 출석 요약, 결석 셀 클릭 → 결석사유 확인</span></div>
-              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>날짜는 <strong>일요일만</strong> 선택 가능 (자동 보정)</span></div>
-              <div class="flex items-start gap-1.5 text-rose-500"><span class="shrink-0">•</span><span>상단 <strong>결석사유</strong> 버튼으로 전체 날짜 결석사유 모아보기 · <strong>사유 ON/OFF</strong>로 표시 전환</span></div>
-              <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운</strong> 4개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">📋출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📅일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📝결석사유</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📊연간대시보드</code></span></div>
-              <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>영아부 전체 및 반별 출석 통계·이력 한눈에 확인</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>반 이름 탭 → 반별 상세 출석 현황 팝업 · 날짜 탭 → 해당 주일 출석 요약 팝업</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드: 결석 셀 탭 → 결석 사유 확인 · <strong>사유ON</strong>으로 사유 표시 전환 (로그인 필요)</span></div>
+              <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>날짜는 <strong>일요일만</strong> 선택 가능 — 다른 날 선택 시 해당 주 일요일로 자동 보정</span></div>
+              <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운</strong> — 4개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">결석사유</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">연간대시보드</code></span></div>
+              <div class="flex items-start gap-1.5 text-blue-600"><span class="shrink-0">💡</span><span>상단 <strong>출석요약</strong> 버튼 → 카카오톡 공유용 텍스트 복사 · <strong>결석사유</strong> 버튼 → 전체 날짜 결석사유 모아보기</span></div>
             </div>
         </div>
       </div>
@@ -320,35 +319,42 @@
           <span class="text-lg shrink-0">👀</span>
           <div>
             <div class="font-semibold text-zinc-900 mb-0.5">로그인 없이 보기</div>
-            <div class="text-zinc-500">누구나 접속하면 전체 출석 현황을 실시간으로 볼 수 있습니다. 단, 메모·기도제목은 로그인 후에만 열람·수정 가능합니다.</div>
+            <div class="text-zinc-500">누구나 접속하면 전체 출석 현황을 실시간으로 볼 수 있습니다. 결석사유·메모는 로그인 후에만 열람·수정 가능합니다.</div>
           </div>
         </div>
         <div class="flex gap-3 items-start">
           <span class="text-lg shrink-0">✏️</span>
           <div>
-            <div class="font-semibold text-zinc-900 mb-0.5">담당 반 수정</div>
-            <div class="text-zinc-500">우측 상단 <strong>로그인</strong> 버튼 → 담당 반 선택 → PIN 입력 후 자기 반만 수정 가능합니다.</div>
+            <div class="font-semibold text-zinc-900 mb-0.5">출석 체크</div>
+            <div class="text-zinc-500">우측 상단 <strong>로그인</strong> 버튼 → 담당 반 선택 → PIN 입력 후 자기 반 출석 체크 가능. 교사 출석도 반드시 체크해 주세요.</div>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <span class="text-lg shrink-0">🩺</span>
+          <div>
+            <div class="font-semibold text-zinc-900 mb-0.5">결석 사유 기록</div>
+            <div class="text-zinc-500">결석 학생 카드 하단 <strong>사유 입력</strong> 버튼으로 사유 기록. 상단 <strong>결석사유</strong> 버튼으로 전체 날짜 결석사유 모아보기. <strong>사유ON</strong>으로 현황 그리드에 사유 표시 (로그인 필요).</div>
           </div>
         </div>
         <div class="flex gap-3 items-start">
           <span class="text-lg shrink-0">➕</span>
           <div>
-            <div class="font-semibold text-zinc-900 mb-0.5">학생 추가</div>
-            <div class="text-zinc-500">로그인 후 반 이름 옆 <strong>+ 버튼</strong>으로 신입생을 추가할 수 있습니다. 추가한 학생은 영구 저장됩니다.</div>
+            <div class="font-semibold text-zinc-900 mb-0.5">학생 추가 · 메모</div>
+            <div class="text-zinc-500">로그인 후 반 이름 옆 <strong>＋</strong> 버튼으로 신입생 추가 (영구 저장). 학생 카드 <strong>📝</strong> 버튼으로 기도제목·알레르기 등 메모 기록 가능.</div>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <span class="text-lg shrink-0">📊</span>
+          <div>
+            <div class="font-semibold text-zinc-900 mb-0.5">현황 · 엑셀</div>
+            <div class="text-zinc-500"><strong>현황</strong> 탭에서 반별·일자별 통계 확인. <strong>엑셀 다운</strong>으로 출석현황·일자별현황·결석사유·연간대시보드 4개 시트 다운로드. <strong>출석요약</strong> 버튼으로 카카오톡 공유용 텍스트 복사.</div>
           </div>
         </div>
         <div class="flex gap-3 items-start">
           <span class="text-lg shrink-0">🔄</span>
           <div>
             <div class="font-semibold text-zinc-900 mb-0.5">실시간 동기화</div>
-            <div class="text-zinc-500">출석 체크는 모든 기기에 즉시 반영됩니다. 인터넷 연결이 필요합니다.</div>
-          </div>
-        </div>
-        <div class="flex gap-3 items-start">
-          <span class="text-lg shrink-0">📊</span>
-          <div>
-            <div class="font-semibold text-zinc-900 mb-0.5">출석 요약</div>
-            <div class="text-zinc-500">상단 <strong>출석 요약</strong> 버튼으로 카카오톡 공유용 텍스트를 복사할 수 있습니다.</div>
+            <div class="text-zinc-500">출석 체크는 모든 기기에 즉시 반영됩니다. 상단 ☁️ 아이콘으로 연결 상태 확인 가능.</div>
           </div>
         </div>
       </div>
@@ -771,7 +777,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 사유 표시 버튼 초기 상태 설정
   const _rBtn = document.getElementById('toggleReasonsBtn');
   if (_rBtn) {
-    _rBtn.textContent = '사유 ON';
+    _rBtn.textContent = '사유ON';
     _rBtn.className = 'text-xs font-medium px-2.5 py-2 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors whitespace-nowrap';
   }
   const t = new Date();
@@ -2433,10 +2439,10 @@ window.toggleShowReasons = () => {
   showReasons = !showReasons;
   const btn = document.getElementById('toggleReasonsBtn');
   if (btn) {
-    btn.textContent = showReasons ? '사유 ON' : '사유 OFF';
+    btn.textContent = showReasons ? '사유ON' : '사유OFF';
     btn.className = showReasons
-      ? 'text-xs font-medium px-2.5 py-2 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors whitespace-nowrap'
-      : 'text-xs font-medium px-2.5 py-2 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200 hover:bg-zinc-200 transition-colors whitespace-nowrap';
+      ? 'flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors text-center'
+      : 'flex-1 text-xs font-medium py-1.5 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200 hover:bg-zinc-200 transition-colors text-center';
   }
   renderApp();
 };
