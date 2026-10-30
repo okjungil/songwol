@@ -1510,15 +1510,16 @@ function renderStudentGrid() {
       const rowBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50/40';
       const cells = allDates.map(d => {
         const dayData = rows.find(r => r.d === d);
-        if (!dayData) return 'na';
+        if (!dayData) return { s: 'na' };
         const active = allOf(cls, dayData.day, d).includes(s);
-        if (!active) return 'na';
+        if (!active) return { s: 'na' };
         totalDays++;
         dateStu[d]++;
         const present = !!((dayData.day[cls.id] || {}).attendance || {})[s];
         if (present) { totalP++; dateStuP[d]++; }
         dateGrd[d] += (((dayData.day[cls.id] || {}).guardians || {})[s]) || 0;
-        return present ? 'present' : 'absent';
+        const reason = !present ? (((dayData.day[cls.id] || {}).reasons || {})[s] || '') : '';
+        return { s: present ? 'present' : 'absent', reason };
       });
       const absent = totalDays - totalP;
       const pct = totalDays ? Math.round(totalP / totalDays * 100) + '%' : '-';
@@ -1526,9 +1527,13 @@ function renderStudentGrid() {
       bodyHtml += `<tr class="${rowBg}">`;
       bodyHtml += `<td class="${TD} font-medium text-zinc-800 text-left px-2 ${STIC} bg-inherit">${s}</td>`;
       cells.forEach(c => {
-        if (c === 'na')           bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
-        else if (c === 'present') bodyHtml += `<td class="${TD} bg-emerald-50 text-emerald-600 font-bold text-sm">◯</td>`;
-        else                      bodyHtml += `<td class="${TD} bg-rose-50/50"></td>`;
+        if (c.s === 'na')      bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
+        else if (c.s === 'present') bodyHtml += `<td class="${TD} bg-emerald-50 text-emerald-600 font-bold text-sm">◯</td>`;
+        else {
+          const r = c.reason;
+          if (r) bodyHtml += `<td class="${TD} bg-rose-50 text-rose-500 text-[9px] leading-tight px-0.5" title="${r}">${r.length > 4 ? r.slice(0,4)+'…' : r}</td>`;
+          else   bodyHtml += `<td class="${TD} bg-rose-50/50"></td>`;
+        }
       });
       bodyHtml += `<td class="${TD} text-zinc-500 tabular-nums">${pct}</td>`;
       bodyHtml += `<td class="${TD} font-bold text-emerald-600 tabular-nums">${totalP}</td>`;
@@ -1916,7 +1921,13 @@ window.downloadExcel = async function() {
         totalD++; xStu[d]++;
         const present = !!((dayData.day[cls.id] || {}).attendance || {})[s];
         if (present) { totalP++; xStuP[d]++; setCell(ws1, dRow, 2 + di, '◯', S.present); }
-        else { setCell(ws1, dRow, 2 + di, '', S.absent); }
+        else {
+          const reason = ((dayData.day[cls.id] || {}).reasons || {})[s] || '';
+          const absentStyle = reason
+            ? Object.assign({}, S.absent, { font: { sz: 8, color: { rgb: 'DC2626' } }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true } })
+            : S.absent;
+          setCell(ws1, dRow, 2 + di, reason || '', absentStyle);
+        }
         xGrd[d] += (((dayData.day[cls.id] || {}).guardians || {})[s]) || 0;
       });
       const pct = totalD ? Math.round(totalP / totalD * 100) + '%' : '-';
