@@ -181,7 +181,7 @@
           <div class="space-y-1 text-xs text-zinc-500">
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>전체·반별 출석 통계 및 일자별 이력 확인</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>반 이름을 누르면 반별 상세 출석 현황 팝업</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드에서 날짜를 누르면 해당일 출석 요약 팝업 — 교사도 동그라미(●)로 표시</span></div>
+            <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span><strong>영아부 출석현황</strong> 그리드에서 날짜를 누르면 해당일 출석 요약 팝업 — 교사도 동그라미(◯)로 표시</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>일자별 출석 현황에서 날짜를 누르면 상세 팝업 열람 가능</span></div>
             <div class="flex items-start gap-1.5"><span class="text-zinc-400 shrink-0">•</span><span>보호자 집계는 <strong>막내 기준</strong>으로 산정됩니다</span></div>
              <div class="flex items-start gap-1.5 text-emerald-600"><span class="shrink-0">📥</span><span><strong>엑셀 다운로드</strong> 3개 시트: <code class="bg-emerald-50 px-1 rounded text-[10px]">📋출석현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📅일자별현황</code> · <code class="bg-emerald-50 px-1 rounded text-[10px]">📊연간대시보드</code></span></div>
@@ -225,7 +225,7 @@
         </div>
         <div class="flex items-center gap-2">
           <div class="flex items-center gap-2 text-xs text-zinc-400">
-            <span class="inline-flex items-center gap-1"><span class="text-emerald-600 font-bold">●</span> 출석</span>
+            <span class="inline-flex items-center gap-1"><span class="text-emerald-600 font-bold">◯</span> 출석</span>
             <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-rose-50 border border-rose-200 inline-block"></span> 결석</span>
             <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-zinc-100 inline-block"></span> 비재적</span>
           </div>
@@ -282,6 +282,25 @@
       <div class="flex gap-2">
         <button onclick="closeMemoModal()" class="flex-1 bg-zinc-100 text-zinc-700 font-medium py-2.5 rounded-xl text-sm hover:bg-zinc-200 transition-colors">취소</button>
         <button onclick="saveStudentMemo()" class="flex-1 bg-blue-600 text-white font-medium py-2.5 rounded-xl text-sm hover:bg-blue-700 transition-colors">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 결석 사유 모달 -->
+<div id="reasonModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 hidden">
+  <div class="modal-enter bg-white rounded-2xl w-full max-w-sm shadow-2xl">
+    <div class="flex justify-between items-center border-b border-zinc-100 px-5 pt-5 pb-3">
+      <h3 id="reasonModalTitle" class="font-semibold text-zinc-900">결석 사유</h3>
+      <button onclick="closeReasonModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-5 space-y-3">
+      <input id="reasonInput" type="text" maxlength="50" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none" placeholder="예: 감기, 여행, 발열 등 (50자 이내)">
+      <div class="flex gap-2">
+        <button onclick="closeReasonModal()" class="flex-1 bg-zinc-100 text-zinc-700 font-medium py-2.5 rounded-xl text-sm hover:bg-zinc-200 transition-colors">취소</button>
+        <button onclick="saveAbsentReason()" class="flex-1 bg-rose-500 text-white font-medium py-2.5 rounded-xl text-sm hover:bg-rose-600 transition-colors">저장</button>
       </div>
     </div>
   </div>
@@ -953,6 +972,12 @@ function renderApp() {
                   <svg class="w-3 h-3" fill="${hasMemo ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
                 </button>` : ''}
               </div>
+              ${(() => {
+                const reason = !isP && editable ? (((currentAttendanceData[cls.id] || {}).reasons || {})[s] || '') : '';
+                if (!isP && editable) return `<button onclick="event.stopPropagation(); openReasonModal('${cls.id}','${s}')"
+                  class="mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${reason ? 'bg-rose-100 text-rose-600 ring-1 ring-rose-200' : 'bg-zinc-100 text-zinc-400 hover:bg-rose-50 hover:text-rose-400'} transition-colors truncate max-w-full" title="결석 사유 입력">${reason || '사유 입력'}</button>`;
+                return '';
+              })()}
               <button onclick="${editable ? `cycleGuardian('${cls.id}','${s}')` : 'showReadonlyToast()'}"
                 title="보호자 인원"
                 class="mt-1 tabular-nums text-[11px] font-medium px-2 py-0.5 rounded-full ${gn
@@ -1469,7 +1494,7 @@ function renderStudentGrid() {
         if (!dayData) { bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`; return; }
         dateTeaT[d]++; tTotalDays++;
         const present = !!(dayData.day[cls.id] || {}).teacherPresent;
-        if (present) { tP++; dateTeaP[d]++; tTotalP++; bodyHtml += `<td class="${TD} bg-indigo-50 text-indigo-600 font-bold text-sm">●</td>`; }
+        if (present) { tP++; dateTeaP[d]++; tTotalP++; bodyHtml += `<td class="${TD} bg-indigo-50 text-indigo-600 font-bold text-sm">◯</td>`; }
         else { bodyHtml += `<td class="${TD} bg-slate-50"></td>`; }
       });
       const tPct2 = tTotalDays ? Math.round(tTotalP / tTotalDays * 100) + '%' : '-';
@@ -1502,7 +1527,7 @@ function renderStudentGrid() {
       bodyHtml += `<td class="${TD} font-medium text-zinc-800 text-left px-2 ${STIC} bg-inherit">${s}</td>`;
       cells.forEach(c => {
         if (c === 'na')           bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
-        else if (c === 'present') bodyHtml += `<td class="${TD} bg-emerald-50 text-emerald-600 font-bold text-sm">●</td>`;
+        else if (c === 'present') bodyHtml += `<td class="${TD} bg-emerald-50 text-emerald-600 font-bold text-sm">◯</td>`;
         else                      bodyHtml += `<td class="${TD} bg-rose-50/50"></td>`;
       });
       bodyHtml += `<td class="${TD} text-zinc-500 tabular-nums">${pct}</td>`;
@@ -1537,7 +1562,7 @@ function renderStudentGrid() {
     bodyHtml += `<td class="${TD} font-medium text-teal-700 text-left px-2 ${STIC} bg-inherit">${name}</td>`;
     cells.forEach(c => {
       if (c === 'na')          bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
-      else if (c === 'present') bodyHtml += `<td class="${TD} bg-teal-50 text-teal-600 font-bold text-sm">●</td>`;
+      else if (c === 'present') bodyHtml += `<td class="${TD} bg-teal-50 text-teal-600 font-bold text-sm">◯</td>`;
       else                     bodyHtml += `<td class="${TD} bg-slate-50"></td>`;
     });
     bodyHtml += `<td class="${TD} text-teal-500 tabular-nums">${sPct}</td>`;
@@ -1856,6 +1881,11 @@ window.downloadExcel = async function() {
     const hstWrap = Object.assign({}, hst, { alignment: { horizontal: 'center', vertical: 'center', wrapText: true } });
     setCell(ws1, dRow, 0, cls.className + '\n' + cls.teacher, hstWrap);
     if (rowCount > 1) merge(ws1, dRow, 0, dRow + rowCount - 1, 0);
+    // 반 셀 행높이: 2줄이 보이도록
+    if (!ws1['!rows']) ws1['!rows'] = [];
+    for (let ri = dRow; ri < dRow + rowCount; ri++) {
+      ws1['!rows'][ri] = ws1['!rows'][ri] || { hpt: 18 };
+    }
 
     // 교사 행 (첫 번째)
     setCell(ws1, dRow, 1, cls.teacher + ' (교사)', tst);
@@ -1865,7 +1895,7 @@ window.downloadExcel = async function() {
       if (!dayData) { setCell(ws1, dRow, 2 + di, '–', S.naCell); return; }
       xTeaT[d]++; tTeaT++;
       const present = !!(dayData.day[cls.id] || {}).teacherPresent;
-      if (present) { xTeaP[d]++; tTeaP++; setCell(ws1, dRow, 2 + di, '●', tPres); }
+      if (present) { xTeaP[d]++; tTeaP++; setCell(ws1, dRow, 2 + di, '◯', tPres); }
       else { setCell(ws1, dRow, 2 + di, '', S.absent); }
     });
     const tPct = tTeaT ? Math.round(tTeaP / tTeaT * 100) + '%' : '-';
@@ -1885,7 +1915,7 @@ window.downloadExcel = async function() {
         if (!active) { setCell(ws1, dRow, 2 + di, '–', S.naCell); return; }
         totalD++; xStu[d]++;
         const present = !!((dayData.day[cls.id] || {}).attendance || {})[s];
-        if (present) { totalP++; xStuP[d]++; setCell(ws1, dRow, 2 + di, '●', S.present); }
+        if (present) { totalP++; xStuP[d]++; setCell(ws1, dRow, 2 + di, '◯', S.present); }
         else { setCell(ws1, dRow, 2 + di, '', S.absent); }
         xGrd[d] += (((dayData.day[cls.id] || {}).guardians || {})[s]) || 0;
       });
@@ -1913,7 +1943,7 @@ window.downloadExcel = async function() {
       if (!dayData) { setCell(ws1, dRow, 2 + di, '–', S.naCell); return; }
       xSteT[d]++; sT++;
       const present = !!((dayData.day.staff || {}).attendance || {})[name];
-      if (present) { xSteP[d]++; sP++; setCell(ws1, dRow, 2 + di, '●', S.stePres); }
+      if (present) { xSteP[d]++; sP++; setCell(ws1, dRow, 2 + di, '◯', S.stePres); }
       else { setCell(ws1, dRow, 2 + di, '', S.absent); }
     });
     const sPct = sT ? Math.round(sP / sT * 100) + '%' : '-';
@@ -2302,6 +2332,30 @@ window.saveStudentMemo = () => {
   closeMemoModal(); showToast('메모가 저장되었습니다.'); renderApp();
 };
 
+let _reasonCid = null, _reasonName = null;
+window.openReasonModal = (cid, name) => {
+  if (!canEditClass(cid)) return showReadonlyToast();
+  _reasonCid = cid; _reasonName = name;
+  const cur = ((currentAttendanceData[cid] || {}).reasons || {})[name] || '';
+  document.getElementById('reasonModalTitle').textContent = `${name} 결석 사유`;
+  const inp = document.getElementById('reasonInput');
+  inp.value = cur;
+  inp.onkeydown = e => { if (e.key === 'Enter') saveAbsentReason(); if (e.key === 'Escape') closeReasonModal(); };
+  document.getElementById('reasonModal').classList.remove('hidden');
+  setTimeout(() => inp.focus(), 50);
+};
+window.closeReasonModal = () => {
+  document.getElementById('reasonModal').classList.add('hidden');
+  _reasonCid = null; _reasonName = null;
+};
+window.saveAbsentReason = () => {
+  if (!_reasonCid || !_reasonName) return;
+  const v = document.getElementById('reasonInput').value.trim();
+  patchDay({ [_reasonCid]: { reasons: { [_reasonName]: v } } });
+  closeReasonModal();
+  showToast(v ? '결석 사유가 저장되었습니다.' : '사유가 삭제되었습니다.');
+};
+
 // ═══════════════════════════════════════════════════
 // 21. 사진
 // ═══════════════════════════════════════════════════
@@ -2471,11 +2525,13 @@ window.openDayDetailCard = d => {
     `<div class="text-xs"><span class="font-medium ${cls}">${label}</span> ${names.join(', ') || '없음'}</div>`;
   const cards = ministryData.map(cls => {
     const cd = (day[cls.id] || {}).attendance || {};
+    const reasons = (day[cls.id] || {}).reasons || {};
     const tp = !!(day[cls.id] || {}).teacherPresent;
     const list = allOf(cls, day);
     const pl = list.filter(s => cd[s]), al = list.filter(s => !cd[s]);
     const gm = (day[cls.id] || {}).guardians || {};
     if (tp) tt++;
+    const absentWithReason = al.map(s => reasons[s] ? `${s}(${reasons[s]})` : s);
     return `<div class="p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5 space-y-1">
       <div class="flex items-center justify-between">
         <span class="font-medium text-sm text-zinc-900">${cls.className}</span>
@@ -2483,7 +2539,7 @@ window.openDayDetailCard = d => {
       </div>
       <div class="text-xs ${tp ? 'text-emerald-700' : 'text-rose-600'}">교사 ${cls.teacher} ${tp ? '출석' : '결석'}</div>
       ${row('출석', pl, 'text-emerald-700')}
-      ${row('결석', al, 'text-rose-600')}
+      ${row('결석', absentWithReason, 'text-rose-600')}
       <div class="text-xs text-amber-700">👪 보호자 ${list.reduce((a,s)=>a+(gm[s]||0),0)}명</div>
     </div>`;
   }).join('');
