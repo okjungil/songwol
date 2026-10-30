@@ -229,6 +229,7 @@
             <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-rose-50 border border-rose-200 inline-block"></span> 결석</span>
             <span class="inline-flex items-center gap-1"><span class="w-4 h-4 rounded-sm bg-zinc-100 inline-block"></span> 비재적</span>
           </div>
+          <button id="toggleReasonsBtn" onclick="toggleShowReasons()" class="text-xs font-medium px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors">사유 표시 ON</button>
           <button onclick="downloadExcel()" class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             엑셀 다운로드
@@ -678,6 +679,7 @@ let currentEditingStudent = null;
 let activeTab = 'check';
 let unsubscribe = null;
 let remoteRoster = {};
+let showReasons = true; // 결석사유 표시 토글
 
 // 쓰기 큐 (동시 저장 방지)
 let writeChain = Promise.resolve();
@@ -973,9 +975,11 @@ function renderApp() {
                 </button>` : ''}
               </div>
               ${(() => {
-                const reason = !isP && editable ? (((currentAttendanceData[cls.id] || {}).reasons || {})[s] || '') : '';
+                const reason = !isP ? (((currentAttendanceData[cls.id] || {}).reasons || {})[s] || '') : '';
                 if (!isP && editable) return `<button onclick="event.stopPropagation(); openReasonModal('${cls.id}','${s}')"
-                  class="mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${reason ? 'bg-rose-100 text-rose-600 ring-1 ring-rose-200' : 'bg-zinc-100 text-zinc-400 hover:bg-rose-50 hover:text-rose-400'} transition-colors truncate max-w-full" title="결석 사유 입력">${reason || '사유 입력'}</button>`;
+                  class="mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${reason ? 'bg-rose-100 text-rose-600 ring-1 ring-rose-200' : 'bg-zinc-100 text-zinc-400 hover:bg-rose-50 hover:text-rose-400'} transition-colors truncate max-w-full" title="결석 사유 입력/수정">${reason || '사유 입력'}</button>`;
+                if (!isP && !editable && currentRole && reason) return `<span onclick="event.stopPropagation(); showFullReason('${reason.replace(/'/g, "&#39;")}')"
+                  class="mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-400 ring-1 ring-rose-100 cursor-pointer truncate max-w-full" title="결석 사유 보기">${reason.length > 6 ? reason.slice(0,6)+'…' : reason}</span>`;
                 return '';
               })()}
               <button onclick="${editable ? `cycleGuardian('${cls.id}','${s}')` : 'showReadonlyToast()'}"
@@ -1180,6 +1184,7 @@ window.renderSearchResults = function() {
       n++;
       const isP = !!cd.attendance[s];
       const memo = canViewMemo() ? (memos[s] || '') : '';
+      const reason = (!isP && currentRole) ? ((cd.reasons || {})[s] || '') : '';
       const editable = canEditClass(cls.id);
       html += `
       <div class="flex items-center justify-between gap-3 p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5">
@@ -1193,6 +1198,7 @@ window.renderSearchResults = function() {
             </div>
             <div class="text-xs text-zinc-400 mt-0.5">${cls.className} · ${cls.teacher} 선생님</div>
             ${memo ? `<div class="text-xs text-amber-700 mt-1 bg-amber-50 px-2 py-0.5 rounded-lg inline-block">${memo}</div>` : ''}
+            ${reason ? `<div onclick="showFullReason('${reason.replace(/'/g, "&#39;")}')" class="text-xs text-rose-500 mt-1 bg-rose-50 px-2 py-0.5 rounded-lg inline-block cursor-pointer hover:bg-rose-100 transition-colors" title="결석 사유 보기">${reason.length > 10 ? reason.slice(0,10)+'…' : reason}</div>` : ''}
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
@@ -1428,7 +1434,7 @@ function renderStudentGrid() {
 
   // ── 헤더 3행 ──
   // 행1: 이름 고정열 | 월(colspan) | 출석률 | 출석 | 결석
-  let h1 = `<th class="${TH} bg-slate-100" rowspan="3" style="left:0;z-index:20;position:sticky;min-width:4.5rem">영아부 출석현황</th>`;
+  let h1 = `<th class="${TH} bg-slate-100" rowspan="3" style="left:0;z-index:20;position:sticky;min-width:3.5rem">이름</th>`;
   monthSpans.forEach(m => {
     h1 += `<th class="${TH} bg-blue-600 text-white" colspan="${m.count}">${m.label}</th>`;
   });
@@ -1472,23 +1478,11 @@ function renderStudentGrid() {
     });
     const tPct = tT ? Math.round(tP / tT * 100) + '%' : '-';
 
-    // 반 구분 헤더 (파란 박스) — 이름 셀만 sticky, 나머지는 배경색 셀로 채움 → 좌우·세로 모두 고정
-    bodyHtml += `<tr class="cls-header-row">
-      <td class="border border-zinc-200 bg-indigo-50 px-3 py-1 text-[11px] font-bold text-indigo-800 sticky left-0 z-[15] whitespace-nowrap" style="left:0">
-        ${cls.className} <span class="font-normal text-indigo-400">· ${cls.teacher} 선생님</span>
-      </td>
-      ${allDates.map(() => `<td class="border border-zinc-200 bg-indigo-50"></td>`).join('')}
-      <td class="border border-zinc-200 bg-indigo-50"></td>
-      <td class="border border-zinc-200 bg-indigo-50"></td>
-      <td class="border border-zinc-200 bg-indigo-50"></td>
-    </tr>`;
-
-    // 교사 행 (학생 행과 동일한 방식)
+    // 반 구분 + 교사 행 (1줄 통합): 반이름·교사 이름셀 + 교사 출결 셀
     {
       let tTotalP = 0, tTotalDays = 0;
-      const rowBg = 'bg-indigo-50/30';
-      bodyHtml += `<tr class="${rowBg}">`;
-      bodyHtml += `<td class="${TD} italic text-indigo-600 text-left px-2 ${STIC} bg-indigo-50/30">└ ${cls.teacher}</td>`;
+      bodyHtml += `<tr class="cls-header-row">`;
+      bodyHtml += `<td class="${TD} font-bold text-indigo-800 text-left px-2 sticky left-0 z-[15] whitespace-nowrap bg-indigo-50" style="left:0"><span class="font-bold">${cls.className}</span> <span class="font-normal text-indigo-500 text-[10px]">· ${cls.teacher}</span></td>`;
       allDates.forEach((d, di) => {
         const dayData = rows.find(r => r.d === d);
         if (!dayData) { bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`; return; }
@@ -1508,6 +1502,7 @@ function renderStudentGrid() {
     allStudents.forEach((s, si) => {
       let totalDays = 0, totalP = 0;
       const rowBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50/40';
+      const nameBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50';
       const cells = allDates.map(d => {
         const dayData = rows.find(r => r.d === d);
         if (!dayData) return { s: 'na' };
@@ -1525,13 +1520,13 @@ function renderStudentGrid() {
       const pct = totalDays ? Math.round(totalP / totalDays * 100) + '%' : '-';
 
       bodyHtml += `<tr class="${rowBg}">`;
-      bodyHtml += `<td class="${TD} font-medium text-zinc-800 text-left px-2 ${STIC} bg-inherit">${s}</td>`;
+      bodyHtml += `<td class="${TD} font-medium text-zinc-800 text-left px-2 ${STIC} ${nameBg}">${s}</td>`;
       cells.forEach(c => {
         if (c.s === 'na')      bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
         else if (c.s === 'present') bodyHtml += `<td class="${TD} bg-emerald-50 text-emerald-600 font-bold text-sm">◯</td>`;
         else {
           const r = c.reason;
-          if (r) bodyHtml += `<td class="${TD} bg-rose-50 text-rose-500 text-[9px] leading-tight px-0.5" title="${r}">${r.length > 4 ? r.slice(0,4)+'…' : r}</td>`;
+          if (r && showReasons) bodyHtml += `<td class="${TD} bg-rose-50 text-rose-500 text-[9px] leading-tight px-0.5 cursor-pointer hover:bg-rose-100" title="${r}" onclick="showFullReason('${r.replace(/'/g, "&#39;")}')">${r.length > 4 ? r.slice(0,4)+'…' : r}</td>`;
           else   bodyHtml += `<td class="${TD} bg-rose-50/50"></td>`;
         }
       });
@@ -1552,6 +1547,7 @@ function renderStudentGrid() {
   </tr>`;
   staffList.forEach((name, si) => {
     const rowBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50/40';
+    const nameBg = si % 2 === 0 ? 'bg-white' : 'bg-zinc-50';
     const cells = allDates.map(d => {
       const dayData = rows.find(r => r.d === d);
       if (!dayData) return 'na';
@@ -1564,7 +1560,7 @@ function renderStudentGrid() {
     const sT = cells.filter(c => c !== 'na').length;
     const sPct = sT ? Math.round(sP / sT * 100) + '%' : '-';
     bodyHtml += `<tr class="${rowBg}">`;
-    bodyHtml += `<td class="${TD} font-medium text-teal-700 text-left px-2 ${STIC} bg-inherit">${name}</td>`;
+    bodyHtml += `<td class="${TD} font-medium text-teal-700 text-left px-2 ${STIC} ${nameBg}">${name}</td>`;
     cells.forEach(c => {
       if (c === 'na')          bodyHtml += `<td class="${TD} bg-zinc-100 text-zinc-300 text-[10px]">–</td>`;
       else if (c === 'present') bodyHtml += `<td class="${TD} bg-teal-50 text-teal-600 font-bold text-sm">◯</td>`;
@@ -2344,6 +2340,9 @@ window.saveStudentMemo = () => {
 };
 
 let _reasonCid = null, _reasonName = null;
+window.showFullReason = (reason) => {
+  showDetail('결석 사유', `<div class="p-4 text-sm text-zinc-700 leading-relaxed">${reason}</div>`);
+};
 window.openReasonModal = (cid, name) => {
   if (!canEditClass(cid)) return showReadonlyToast();
   _reasonCid = cid; _reasonName = name;
@@ -2365,6 +2364,18 @@ window.saveAbsentReason = () => {
   patchDay({ [_reasonCid]: { reasons: { [_reasonName]: v } } });
   closeReasonModal();
   showToast(v ? '결석 사유가 저장되었습니다.' : '사유가 삭제되었습니다.');
+};
+
+window.toggleShowReasons = () => {
+  showReasons = !showReasons;
+  const btn = document.getElementById('toggleReasonsBtn');
+  if (btn) {
+    btn.textContent = showReasons ? '사유 표시 ON' : '사유 표시 OFF';
+    btn.className = showReasons
+      ? 'text-xs font-medium px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors'
+      : 'text-xs font-medium px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-500 hover:bg-zinc-200 transition-colors';
+  }
+  renderStudentGrid();
 };
 
 // ═══════════════════════════════════════════════════
@@ -2644,6 +2655,16 @@ window.closeGuideModal = () => {
 if (!lsRaw('songwol_guide_seen')) {
   setTimeout(() => window.openGuideModal(), 800);
 }
+
+// ═══════════════════════════════════════════════════
+// 앱 버전 및 최종수정일시 푸터
+// ═══════════════════════════════════════════════════
+(function() {
+  const footer = document.createElement('div');
+  footer.className = 'text-center text-[10px] text-zinc-400 py-4 pb-8 select-none';
+  footer.innerHTML = '송월교회 영아부 · v2.2 · 최종수정: 2026-10-30';
+  document.querySelector('main').appendChild(footer);
+})();
 
 </script>
 </body>
