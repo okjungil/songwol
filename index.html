@@ -534,6 +534,7 @@ const pid = n => 'p' + [...n].map(c => c.codePointAt(0).toString(36)).join('_');
 
 let B = null; // 공유 백엔드
 let sharedMemos = null, sharedPhotos = null, remoteHistory = {};
+let sharedAppMemo = null; // 공지/앱 메모 실시간 공유
 
 let _fbAuth = null;
 
@@ -559,6 +560,7 @@ async function firebaseBackend() {
   const attCol    = () => F.collection(fdb, 'songwolAttendance');
   const attDoc    = key => F.doc(fdb, 'songwolAttendance', key);
   const metaDoc   = () => F.doc(fdb, 'songwolMeta', 'memos');
+  const appMemoDoc = () => F.doc(fdb, 'songwolMeta', 'appMemo');
   const photoCol  = () => F.collection(fdb, 'songwolPhotos');
   const photoDoc  = name => F.doc(fdb, 'songwolPhotos', pid(name));
   const rosterDoc = cid => F.doc(fdb, 'songwolRoster', cid);
@@ -569,6 +571,8 @@ async function firebaseBackend() {
     patchDay:       async (key, patch) => { await ensureAuth(); return F.setDoc(attDoc(key), patch, { merge: true }); },
     watchMemos:     cb => F.onSnapshot(metaDoc(), s => cb(s.exists() ? s.data() : {}), console.error),
     setMemo:        async (name, text) => { await ensureAuth(); return F.setDoc(metaDoc(), { [name]: text }, { merge: true }); },
+    watchAppMemo:   cb => F.onSnapshot(appMemoDoc(), s => cb(s.exists() ? (s.data().text || '') : ''), console.error),
+    setAppMemo:     async text => { await ensureAuth(); return F.setDoc(appMemoDoc(), { text }, { merge: false }); },
     watchPhotos:    cb => F.onSnapshot(photoCol(), s => { const m = {}; s.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:       async (name, img) => { await ensureAuth(); return F.setDoc(photoDoc(name), { name, img }); },
     delPhoto:       async name => { await ensureAuth(); return F.deleteDoc(photoDoc(name)); },
@@ -615,6 +619,8 @@ function claudeBackend(db) {
     patchDay:    (key, patch, full) => mergeDoc(db.doc('attendance/' + key), patch, full),
     watchMemos:  cb => db.doc('meta/memos').onSnapshot(s => cb(s.exists ? Object.assign({}, s.data()) : {}), console.error),
     setMemo:     (name, text) => mergeDoc(db.doc('meta/memos'), { [name]: text }),
+    watchAppMemo: cb => db.doc('meta/appMemo').onSnapshot(s => cb(s.exists ? (s.data().text || '') : ''), console.error),
+    setAppMemo:  text => db.doc('meta/appMemo').set({ text }),
     watchPhotos: cb => db.collection('photos').onSnapshot(s => { const m = {}; s.docs.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:    (name, img) => db.doc('photos/' + pid(name)).set({ name, img }),
     delPhoto:    name => db.doc('photos/' + pid(name)).delete()
@@ -810,6 +816,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     B.watchMemos(m => { sharedMemos = m; renderApp(); });
     B.watchPhotos(p => { sharedPhotos = p; renderApp(); });
     B.watchAll(h => { remoteHistory = h; if (activeTab === 'stats') renderStats(); });
+    if (B.watchAppMemo) B.watchAppMemo(t => { sharedAppMemo = t; });
     setupRealtimeListener();
   }
   updateSyncBadge(); // B 초기화 완료 후 배지 업데이트
@@ -2779,7 +2786,7 @@ if (!lsRaw('songwol_guide_seen')) {
 // 앱 메모 (공지/관리자 메모)
 // ═══════════════════════════════════════════════════
 window.openAppMemo = () => {
-  const saved = lsRaw('songwol_app_memo') || '';
+  const saved = (B && sharedAppMemo !== null) ? sharedAppMemo : (lsRaw('songwol_app_memo') || '');
   const canEdit = !!currentRole;
   showDetail('📋 공지 / 메모', `
     <div class="p-4 space-y-3">
@@ -2794,9 +2801,15 @@ window.openAppMemo = () => {
       </div>` : `<p class="text-xs text-zinc-400 text-center">로그인 후 수정 가능합니다.</p>`}
     </div>`);
 };
-window.saveAppMemo = () => {
+window.saveAppMemo = async () => {
   const v = (document.getElementById('appMemoText') || {}).value || '';
-  lsSet('songwol_app_memo', v);
+  lsSet('songwol_app_memo', v); // 로컬 백업
+  if (B && B.setAppMemo) {
+    try {
+      await B.setAppMemo(v);
+      sharedAppMemo = v;
+    } catch(e) { console.error('앱 메모 저장 실패:', e); }
+  }
   closeDetail();
   showToast('메모가 저장되었습니다.');
 };
