@@ -98,7 +98,7 @@
   <div class="max-w-2xl mx-auto px-3 pt-2 pb-0">
     <div class="flex items-center gap-1.5 mb-2">
       <input type="date" id="attendanceDate" class="w-32 shrink-0 text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 tabular-nums">
-      <button onclick="openSummary()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200 transition-colors text-center">요약</button>
+      <button onclick="openSummary()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200 transition-colors text-center">출석요약</button>
       <button onclick="openAbsentReasonSummary()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors text-center">결석사유</button>
       <button id="toggleReasonsBtn" onclick="toggleShowReasons()" class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors text-center">사유 ON</button>
       <button id="syncBadge" onclick="onBadgeClick()" title="실시간 연동 중" class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-base leading-none">⏳</button>
@@ -2225,22 +2225,42 @@ function updateAuthUI() {
     const checkBtn = document.getElementById('checkAllBtn');
     if (checkBtn) checkBtn.classList.add('hidden');
   }
+  // 사유ON 버튼: 로그인 여부에 따라 활성/비활성
+  const rBtn = document.getElementById('toggleReasonsBtn');
+  if (rBtn) {
+    if (currentRole) {
+      rBtn.disabled = false;
+      rBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+    } else {
+      rBtn.disabled = true;
+      rBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    }
+  }
 }
 
 function updateSyncBadge() {
   const badge = document.getElementById('syncBadge');
   if (!B) {
     badge.textContent = '💾';
+    badge.dataset.connected = 'false';
     badge.className = 'shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-base leading-none';
     badge.title = '로컬 저장 (Firebase 미연결) — setup.html에서 설정하세요.';
   } else {
     badge.textContent = '☁️';
+    badge.dataset.connected = 'true';
     badge.className = 'shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-base leading-none';
     badge.title = '실시간 연동 중 (Firebase)';
   }
 }
 
-window.onBadgeClick = () => {};
+window.onBadgeClick = () => {
+  const badge = document.getElementById('syncBadge');
+  if (badge && badge.dataset.connected === 'true') {
+    showToast('실시간 연동 중 (Firebase)', 'success');
+  } else {
+    showToast('로컬 저장 중 (Firebase 미연결)', 'error');
+  }
+};
 
 window.openAuthModal = function() {
   if (currentRole) {
@@ -2408,7 +2428,9 @@ window.saveAbsentReason = () => {
   showToast(v ? '결석 사유가 저장되었습니다.' : '사유가 삭제되었습니다.');
 };
 
-window.toggleShowReasons = () => {  showReasons = !showReasons;
+window.toggleShowReasons = () => {
+  if (!currentRole) { showToast('로그인 후 사용할 수 있어요.', 'error'); return; }
+  showReasons = !showReasons;
   const btn = document.getElementById('toggleReasonsBtn');
   if (btn) {
     btn.textContent = showReasons ? '사유 ON' : '사유 OFF';
