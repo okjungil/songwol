@@ -534,7 +534,7 @@ const pid = n => 'p' + [...n].map(c => c.codePointAt(0).toString(36)).join('_');
 
 let B = null; // 공유 백엔드
 let sharedMemos = null, sharedPhotos = null, remoteHistory = {};
-let sharedAppMemo = null; // 공지/앱 메모 실시간 공유
+let sharedAppMemo = null; // 공지/앱 메모 실시간 공유 { text, files: [{name, type, data, size}] }
 
 let _fbAuth = null;
 
@@ -571,8 +571,8 @@ async function firebaseBackend() {
     patchDay:       async (key, patch) => { await ensureAuth(); return F.setDoc(attDoc(key), patch, { merge: true }); },
     watchMemos:     cb => F.onSnapshot(metaDoc(), s => cb(s.exists() ? s.data() : {}), console.error),
     setMemo:        async (name, text) => { await ensureAuth(); return F.setDoc(metaDoc(), { [name]: text }, { merge: true }); },
-    watchAppMemo:   cb => F.onSnapshot(appMemoDoc(), s => cb(s.exists() ? (s.data().text || '') : ''), console.error),
-    setAppMemo:     async text => { await ensureAuth(); return F.setDoc(appMemoDoc(), { text }, { merge: false }); },
+    watchAppMemo:   cb => F.onSnapshot(appMemoDoc(), s => cb(s.exists() ? (s.data() || {}) : {}), console.error),
+    setAppMemo:     async data => { await ensureAuth(); return F.setDoc(appMemoDoc(), data, { merge: false }); },
     watchPhotos:    cb => F.onSnapshot(photoCol(), s => { const m = {}; s.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:       async (name, img) => { await ensureAuth(); return F.setDoc(photoDoc(name), { name, img }); },
     delPhoto:       async name => { await ensureAuth(); return F.deleteDoc(photoDoc(name)); },
@@ -619,8 +619,8 @@ function claudeBackend(db) {
     patchDay:    (key, patch, full) => mergeDoc(db.doc('attendance/' + key), patch, full),
     watchMemos:  cb => db.doc('meta/memos').onSnapshot(s => cb(s.exists ? Object.assign({}, s.data()) : {}), console.error),
     setMemo:     (name, text) => mergeDoc(db.doc('meta/memos'), { [name]: text }),
-    watchAppMemo: cb => db.doc('meta/appMemo').onSnapshot(s => cb(s.exists ? (s.data().text || '') : ''), console.error),
-    setAppMemo:  text => db.doc('meta/appMemo').set({ text }),
+    watchAppMemo: cb => db.doc('meta/appMemo').onSnapshot(s => cb(s.exists ? (s.data() || {}) : {}), console.error),
+    setAppMemo:  data => db.doc('meta/appMemo').set(data),
     watchPhotos: cb => db.collection('photos').onSnapshot(s => { const m = {}; s.docs.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:    (name, img) => db.doc('photos/' + pid(name)).set({ name, img }),
     delPhoto:    name => db.doc('photos/' + pid(name)).delete()
@@ -816,7 +816,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     B.watchMemos(m => { sharedMemos = m; renderApp(); });
     B.watchPhotos(p => { sharedPhotos = p; renderApp(); });
     B.watchAll(h => { remoteHistory = h; if (activeTab === 'stats') renderStats(); });
-    if (B.watchAppMemo) B.watchAppMemo(t => { sharedAppMemo = t; });
+    if (B.watchAppMemo) B.watchAppMemo(d => { sharedAppMemo = d; });
     setupRealtimeListener();
   }
   updateSyncBadge(); // B 초기화 완료 후 배지 업데이트
@@ -2785,33 +2785,116 @@ if (!lsRaw('songwol_guide_seen')) {
 // ═══════════════════════════════════════════════════
 // 앱 메모 (공지/관리자 메모)
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// 앱 메모 (공지/관리자 메모 + 파일 첨부)
+// ═══════════════════════════════════════════════════
+let _memoFiles = []; // 현재 팝업에서 관리 중인 파일 목록
+
+function renderMemoFileList(canEdit) {
+  const wrap = document.getElementById('memoFileList');
+  if (!wrap) return;
+  if (!_memoFiles.length) {
+    wrap.innerHTML = '<p class="text-xs text-zinc-400 text-center py-2">첨부 파일 없음</p>';
+    return;
+  }
+  wrap.innerHTML = _memoFiles.map((f, i) => {
+    const isImg = f.type.startsWith('image/');
+    const sizeKB = Math.round(f.size / 1024);
+    return `
+      <div class="flex items-center gap-2 bg-zinc-50 rounded-xl p-2 ring-1 ring-black/5">
+        ${isImg
+          ? `<img src="${f.data}" class="w-10 h-10 rounded-lg object-cover shrink-0 cursor-pointer" onclick="openMemoFilePreview(${i})">`
+          : `<div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 text-lg">${f.type.includes('pdf') ? '📄' : '📎'}</div>`}
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-medium text-zinc-800 truncate">${f.name}</div>
+          <div class="text-[10px] text-zinc-400">${sizeKB}KB</div>
+        </div>
+        <a href="${f.data}" download="${f.name}" class="text-blue-500 hover:text-blue-700 text-xs font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors shrink-0">↓</a>
+        ${canEdit ? `<button onclick="removeMemoFile(${i})" class="text-rose-400 hover:text-rose-600 text-xs px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors shrink-0">✕</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+window.openMemoFilePreview = i => {
+  const f = _memoFiles[i];
+  if (!f) return;
+  showDetail(f.name, `<div class="p-4"><img src="${f.data}" class="w-full rounded-xl object-contain max-h-[70vh]"></div>`);
+};
+
+window.removeMemoFile = i => {
+  _memoFiles.splice(i, 1);
+  renderMemoFileList(true);
+};
+
+window.memoFileInputChange = () => {
+  const input = document.getElementById('memoFileInput');
+  if (!input || !input.files.length) return;
+  const MAX = 500 * 1024; // 500KB
+  Array.from(input.files).forEach(file => {
+    if (file.size > MAX) { showToast(`${file.name}: 500KB 이하 파일만 첨부 가능합니다.`, 'error'); return; }
+    if (_memoFiles.length >= 5) { showToast('파일은 최대 5개까지 첨부 가능합니다.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      _memoFiles.push({ name: file.name, type: file.type, size: file.size, data: e.target.result });
+      renderMemoFileList(true);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+};
+
 window.openAppMemo = () => {
-  const saved = (B && sharedAppMemo !== null) ? sharedAppMemo : (lsRaw('songwol_app_memo') || '');
+  const saved = (B && sharedAppMemo !== null) ? sharedAppMemo : {};
+  const text = saved.text || lsRaw('songwol_app_memo') || '';
+  _memoFiles = JSON.parse(JSON.stringify(saved.files || [])); // deep copy
   const canEdit = !!currentRole;
   showDetail('📋 공지 / 메모', `
     <div class="p-4 space-y-3">
-      <textarea id="appMemoText" rows="7"
+      <textarea id="appMemoText" rows="5"
         class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-relaxed"
         placeholder="공지사항, 기도제목, 전달사항 등을 입력하세요…"
-        ${canEdit ? '' : 'readonly'}>${saved}</textarea>
+        ${canEdit ? '' : 'readonly'}>${text}</textarea>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-medium text-zinc-600">첨부 파일</span>
+          ${canEdit ? `
+            <label for="memoFileInput" class="cursor-pointer text-xs font-medium px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">
+              + 파일 추가
+            </label>
+            <input type="file" id="memoFileInput" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.hwp"
+              class="hidden" onchange="memoFileInputChange()">` : ''}
+        </div>
+        <div id="memoFileList" class="space-y-1.5"></div>
+        ${canEdit ? '<p class="text-[10px] text-zinc-400 mt-1">이미지·PDF·문서 · 파일당 500KB 이하 · 최대 5개</p>' : ''}
+      </div>
       ${canEdit ? `
-      <div class="flex gap-2">
+      <div class="flex gap-2 pt-1">
         <button onclick="closeDetail()" class="flex-1 bg-zinc-100 text-zinc-700 font-medium py-2.5 rounded-xl text-sm hover:bg-zinc-200 transition-colors">닫기</button>
         <button onclick="saveAppMemo()" class="flex-1 bg-blue-600 text-white font-medium py-2.5 rounded-xl text-sm hover:bg-blue-700 transition-colors">저장</button>
       </div>` : `<p class="text-xs text-zinc-400 text-center">로그인 후 수정 가능합니다.</p>`}
     </div>`);
+  // DOM 마운트 후 파일 목록 렌더
+  setTimeout(() => renderMemoFileList(canEdit), 0);
 };
+
 window.saveAppMemo = async () => {
-  const v = (document.getElementById('appMemoText') || {}).value || '';
-  lsSet('songwol_app_memo', v); // 로컬 백업
+  const text = (document.getElementById('appMemoText') || {}).value || '';
+  const data = { text, files: _memoFiles };
+  lsSet('songwol_app_memo', text); // 텍스트 로컬 백업
   if (B && B.setAppMemo) {
     try {
-      await B.setAppMemo(v);
-      sharedAppMemo = v;
-    } catch(e) { console.error('앱 메모 저장 실패:', e); }
+      await B.setAppMemo(data);
+      sharedAppMemo = data;
+    } catch(e) {
+      console.error('앱 메모 저장 실패:', e);
+      showToast('저장 실패: 파일 용량을 줄여보세요.', 'error');
+      return;
+    }
+  } else {
+    sharedAppMemo = data;
   }
   closeDetail();
-  showToast('메모가 저장되었습니다.');
+  showToast('공지/메모가 저장되었습니다.');
 };
 
 // ═══════════════════════════════════════════════════
