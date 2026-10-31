@@ -2861,11 +2861,11 @@ window.openAppMemo = () => {
             <label for="memoFileInput" class="cursor-pointer text-xs font-medium px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">
               + 파일 추가
             </label>
-            <input type="file" id="memoFileInput" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.hwp"
+            <input type="file" id="memoFileInput" multiple
               class="hidden" onchange="memoFileInputChange()">` : ''}
         </div>
         <div id="memoFileList" class="space-y-1.5"></div>
-        ${canEdit ? '<p class="text-[10px] text-zinc-400 mt-1">이미지·PDF·문서 · 파일당 500KB 이하 · 최대 5개</p>' : ''}
+        ${canEdit ? '<p class="text-[10px] text-zinc-400 mt-1">모든 형식 가능 (HTML 포함) · 파일당 500KB 이하 · 최대 5개</p>' : ''}
       </div>
       ${canEdit ? `
       <div class="flex gap-2 pt-1">
