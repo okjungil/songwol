@@ -435,6 +435,49 @@
   </div>
 </div>
 
+<!-- 새신자 등록 모달 -->
+<div id="newcomerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 hidden" onclick="if(event.target===this)closeNewcomerModal()">
+  <div class="modal-enter bg-white rounded-2xl w-full max-w-sm shadow-2xl">
+    <div class="flex justify-between items-center border-b border-zinc-100 px-5 pt-5 pb-3">
+      <h3 id="newcomerModalTitle" class="font-semibold text-zinc-900">새신자 등록</h3>
+      <button onclick="closeNewcomerModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-5 space-y-3">
+      <input type="hidden" id="newcomerEditId" value="">
+      <div>
+        <label class="text-xs font-medium text-zinc-600 block mb-1">이름 <span class="text-rose-500">*</span></label>
+        <input id="newcomerName" type="text" placeholder="원아 이름" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-xs font-medium text-zinc-600 block mb-1">방문일</label>
+          <input id="newcomerVisitDate" type="date" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-zinc-600 block mb-1">반</label>
+          <select id="newcomerClass" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">미정</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-medium text-zinc-600 block mb-1">보호자 연락처</label>
+        <input id="newcomerContact" type="tel" placeholder="010-0000-0000 (선택)" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-zinc-600 block mb-1">메모</label>
+        <textarea id="newcomerMemo" rows="3" placeholder="소개 경로 / 특이사항 등 (선택)" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeNewcomerModal()" class="flex-1 bg-zinc-100 text-zinc-700 font-medium py-2.5 rounded-xl text-sm hover:bg-zinc-200 transition-colors">취소</button>
+        <button onclick="saveNewcomer()" class="flex-1 bg-blue-600 text-white font-medium py-2.5 rounded-xl text-sm hover:bg-blue-700 transition-colors">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 토스트 알림 -->
 <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-zinc-900/90 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none z-50 whitespace-nowrap"></div>
 
@@ -455,29 +498,47 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'songwol-infant-atten
 
 // ★ Firebase 설정 (선택 사항 - 없으면 로컬 모드)
 const MY_FIREBASE_CONFIG = {"apiKey":"AIzaSyC_VL0yu_ktopB0xy5fgKIjeGqFgJ0fzzw","authDomain":"songwol-attendance-e81a7.firebaseapp.com","projectId":"songwol-attendance-e81a7","storageBucket":"songwol-attendance-e81a7.firebasestorage.app","messagingSenderId":"566273926657","appId":"1:566273926657:web:7be0b38bfbd039f80ec200"};
-const EDITOR_EMAIL = 'editor@songwol.app';
+const EDITOR_EMAIL = '[EMAIL]';
 const firebaseConfig = typeof __firebase_config !== 'undefined'
   ? JSON.parse(__firebase_config)
   : MY_FIREBASE_CONFIG;
 
-// ★ 담당교사 PIN 설정
-// 각 반 id: PIN 숫자 4자리 (처음엔 모두 0000으로 설정 → 교사가 변경 불가하므로 여기서 직접 수정)
-// 관리자 PIN: 모든 반 수정 가능
-// PIN은 localStorage에서 동적으로 로드됨 (관리자가 수정 가능)
+// ★ 담당교사 PIN 설정 (보안 강화판)
+// ──────────────────────────────────────────────────────────────
+// [보안] PIN은 더 이상 평문으로 저장/비교하지 않습니다.
+//  - 저장되는 값은 SHA-256(salt + ':' + PIN) 해시뿐이라, "소스 보기"나
+//    localStorage를 들여다봐도 실제 PIN 숫자를 바로 알 수 없습니다.
+//  - 단, 4자리 숫자는 자리수가 적어 해시라도 오프라인 전수조사(1만 가지)에는
+//    약합니다 → 아래 로그인 시도 제한(잠금) 기능과 함께 사용해야 의미가 있습니다.
+//  - 진짜 안전한 인증이 필요하면 Firebase Authentication으로 전환해야 합니다
+//    (이번에는 코드 레벨 즉시 개선 범위로만 처리했습니다).
+// ──────────────────────────────────────────────────────────────
+const PIN_SALT = 'swch_2026_v1'; // 해시에 섞는 솔트(고정값) - 레인보우테이블 재사용 방지용
+
+async function hashPin(pin) {
+  const enc = new TextEncoder().encode(PIN_SALT + ':' + pin);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 아래 값들은 평문 PIN이 아니라 위 hashPin()으로 미리 계산해 둔 해시값입니다.
+// [보안] 원래 PIN이 무엇인지는 이 파일 안에 어디에도 남겨두지 않았습니다.
+// 각 담당 선생님께는 PIN을 구두/별도 채널로 안내하시고, 분실 시에는
+// 관리자 로그인 → 우측 상단 PIN 관리 메뉴에서 새 PIN으로 재설정하세요.
 const DEFAULT_PINS = {
-  admin:  '0401',   // ★ 관리자(총괄 선생님) PIN - 모든 반 수정
-  red1:   '1111',   // 빨강1반 박유미 선생님
-  red2:   '2222',   // 빨강2반 박현정 선생님
-  orange: '3333',   // 주황반 장미화 선생님
-  yellow: '4444',   // 노랑반 신혜연 선생님
-  green:  '5555',   // 초록반 박복이 선생님
-  blue1:  '6666',   // 파랑1반 신영하 선생님
-  blue2:  '7777',   // 파랑2반 김정임 선생님
-  purple: '8888',   // 보라반 조혜숙 선생님
-  staff:  '9999',   // 스텝 담당자 PIN
+  admin:  'b00130e028f6a1e21a75855a84dd27e0bceea94e5a59a0607cd6976b542e040d',
+  red1:   '6e1b200c9534f56fc75a4fa6355d1f02dc57f52294b9857e5d089e17580717c3',
+  red2:   'aaba984d2f5ca7e4a295e0a87923b8d58485598c75b9a7314dab85ba9363762f',
+  orange: '71fdfa3f4b54653975802b06ea7e5096515e240be6555d03c66ab0872ee2c08e',
+  yellow: 'b054dfb820c7dcf8dbdebdea7cba040d74fb708973d7ad2c7c6bd39a4ce4d2b3',
+  green:  '557c4907fae3ad1e980fee6ee7b6bc589f28143841ecc2f415128bc390dd559f',
+  blue1:  '6a416f5ee9bd33bef28aa67b66f4174fd3bc04f9cec3809f865606c31c3e838e',
+  blue2:  'bc9fcf5675876b43a023cbbe9f01021fe68ae1f407593dff7035b5ee871c5aa0',
+  purple: '158275cd5a877b4d5760a905d406de20e2844d69ce16fab5f2ce7c9c7758c21b',
+  staff:  '292b192db6a5ee5493b88e0d55d8aad88272610a37ffe9ec30cbcc87c520e04b',
 };
 
-// 동적 PIN 로드 (관리자가 수정한 경우 localStorage 우선)
+// 동적 PIN 로드 (관리자가 수정한 경우 localStorage 우선) - 저장되는 값도 해시입니다.
 const LS_PINS_KEY = 'songwol_class_pins';
 function loadPins() {
   try {
@@ -485,14 +546,55 @@ function loadPins() {
     return Object.assign({}, DEFAULT_PINS, saved);
   } catch { return Object.assign({}, DEFAULT_PINS); }
 }
-function savePinOverride(role, newPin) {
+async function savePinOverride(role, newPin) {
   try {
     const saved = JSON.parse(localStorage.getItem(LS_PINS_KEY) || '{}');
-    saved[role] = newPin;
+    saved[role] = await hashPin(newPin); // 평문 대신 해시를 저장
     localStorage.setItem(LS_PINS_KEY, JSON.stringify(saved));
   } catch {}
 }
 let CLASS_PINS = loadPins();
+
+// ──────────────────────────────────────────────────────────────
+// [보안] 로그인 시도 제한 (무차별 대입/brute-force 완화)
+//  - 같은 역할(role)로 5회 연속 틀리면 60초간 로그인 시도 자체를 막습니다.
+// ──────────────────────────────────────────────────────────────
+const LS_ATTEMPTS_KEY = 'songwol_login_attempts';
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCK_MS = 60 * 1000;
+function getLoginAttempts() {
+  try { return JSON.parse(localStorage.getItem(LS_ATTEMPTS_KEY) || '{}'); } catch { return {}; }
+}
+function setLoginAttempts(obj) {
+  try { localStorage.setItem(LS_ATTEMPTS_KEY, JSON.stringify(obj)); } catch {}
+}
+function getLoginLockRemaining(role) {
+  const a = getLoginAttempts()[role];
+  if (!a || !a.lockUntil) return 0;
+  return Math.max(0, a.lockUntil - Date.now());
+}
+function registerLoginFailure(role) {
+  const all = getLoginAttempts();
+  const cur = all[role] || { count: 0, lockUntil: 0 };
+  cur.count = (cur.count || 0) + 1;
+  if (cur.count >= LOGIN_MAX_ATTEMPTS) {
+    cur.lockUntil = Date.now() + LOGIN_LOCK_MS;
+    cur.count = 0;
+  }
+  all[role] = cur;
+  setLoginAttempts(all);
+}
+function clearLoginFailures(role) {
+  const all = getLoginAttempts();
+  delete all[role];
+  setLoginAttempts(all);
+}
+
+// ──────────────────────────────────────────────────────────────
+// [보안] 로그인 세션 4시간 자동 만료
+// ──────────────────────────────────────────────────────────────
+const SESSION_MAX_MS = 4 * 60 * 60 * 1000; // 4시간
+const LS_SESSION_KEY = 'songwol_auth_session';
 
 // ═══════════════════════════════════════════════════
 // 2. 데이터 정의
@@ -534,6 +636,7 @@ const pid = n => 'p' + [...n].map(c => c.codePointAt(0).toString(36)).join('_');
 
 let B = null; // 공유 백엔드
 let sharedMemos = null, sharedPhotos = null, remoteHistory = {};
+let sharedNewcomers = null; // 새신자 수기 등록 명단 (공유)
 let sharedAppMemo = null; // 공지/앱 메모 실시간 공유 { text, files: [{name, type, data, size}] }
 
 let _fbAuth = null;
@@ -603,7 +706,15 @@ async function firebaseBackend() {
       const cur = d.exists() ? (d.data().extra || []) : [];
       const updated = cur.filter(e => (e.name || e) !== name);
       await F.setDoc(rosterDoc(cid), { extra: updated });
-    }
+    },
+    // [주차 확정 잠금] weekKey(해당 주 일요일 날짜, 'YYYY-MM-DD') 단위로 확정 상태 저장
+    watchWeekLocks: cb => F.onSnapshot(F.doc(fdb, 'songwolMeta', 'weekLocks'), s => cb(s.exists() ? s.data() : {}), console.error),
+    setWeekLock:    async (weekKey, info) => { await ensureAuth(); return F.setDoc(F.doc(fdb, 'songwolMeta', 'weekLocks'), { [weekKey]: info }, { merge: true }); },
+    // [새신자 수기 등록]
+    watchNewcomers: cb => F.onSnapshot(F.collection(fdb, 'songwolNewcomers'), s => { const m = {}; s.forEach(d => m[d.id] = d.data()); cb(m); }, console.error),
+    addNewcomer:    async entry => { await ensureAuth(); const ref = F.doc(F.collection(fdb, 'songwolNewcomers')); await F.setDoc(ref, Object.assign({}, entry, { id: ref.id })); return ref.id; },
+    updateNewcomer: async (id, patch) => { await ensureAuth(); return F.setDoc(F.doc(fdb, 'songwolNewcomers', id), patch, { merge: true }); },
+    deleteNewcomer: async id => { await ensureAuth(); return F.deleteDoc(F.doc(fdb, 'songwolNewcomers', id)); }
   };
 }
 
@@ -623,7 +734,15 @@ function claudeBackend(db) {
     setAppMemo:  data => db.doc('meta/appMemo').set(data),
     watchPhotos: cb => db.collection('photos').onSnapshot(s => { const m = {}; s.docs.forEach(d => { const v = d.data(); if (v.name && v.img) m[v.name] = v.img; }); cb(m); }, console.error),
     setPhoto:    (name, img) => db.doc('photos/' + pid(name)).set({ name, img }),
-    delPhoto:    name => db.doc('photos/' + pid(name)).delete()
+    delPhoto:    name => db.doc('photos/' + pid(name)).delete(),
+    // [주차 확정 잠금]
+    watchWeekLocks: cb => db.doc('meta/weekLocks').onSnapshot(s => cb(s.exists ? Object.assign({}, s.data()) : {}), console.error),
+    setWeekLock:    (weekKey, info) => mergeDoc(db.doc('meta/weekLocks'), { [weekKey]: info }),
+    // [새신자 수기 등록]
+    watchNewcomers: cb => db.collection('newcomers').onSnapshot(s => { const m = {}; s.docs.forEach(d => m[d.id] = d.data()); cb(m); }, console.error),
+    addNewcomer:    async entry => { const ref = db.collection('newcomers').doc(); await ref.set(Object.assign({}, entry, { id: ref.id })); return ref.id; },
+    updateNewcomer: (id, patch) => mergeDoc(db.collection('newcomers').doc(id), patch),
+    deleteNewcomer: id => db.collection('newcomers').doc(id).delete()
   };
 }
 
@@ -643,25 +762,125 @@ async function initBackend() {
 
 // 로그인한 역할: null(보기전용) | 'admin' | classId (예: 'red1')
 let currentRole = null;
-const LS_ROLE_KEY = 'songwol_auth_role';
+const LS_ROLE_KEY = 'songwol_auth_role'; // (구버전 키, 마이그레이션 정리용으로만 참조)
 
-// 세션 복원 (새로고침해도 유지)
+// [보안] 세션 복원 - 4시간 지난 세션은 자동 만료시킵니다.
 function restoreSession() {
-  CLASS_PINS = loadPins(); // 저장된 PIN 다시 로드
-  const saved = lsRaw(LS_ROLE_KEY);
-  if (saved && CLASS_PINS[saved]) currentRole = saved;
+  CLASS_PINS = loadPins(); // 저장된 PIN(해시) 다시 로드
+  lsDel(LS_ROLE_KEY); // 과거 평문 세션 키는 더 이상 쓰지 않으므로 제거
+  let session = null;
+  try { session = JSON.parse(lsRaw(LS_SESSION_KEY) || 'null'); } catch { session = null; }
+  if (!session || !session.role || !CLASS_PINS[session.role] || !session.loginAt) {
+    currentRole = null;
+    return;
+  }
+  const age = Date.now() - session.loginAt;
+  if (age > SESSION_MAX_MS) {
+    lsDel(LS_SESSION_KEY);
+    currentRole = null;
+    return;
+  }
+  currentRole = session.role;
+}
+
+// [보안] 세션 만료를 주기적으로 감시 (앱을 켜놓은 채 4시간이 지난 경우 자동 로그아웃)
+function startSessionWatcher() {
+  setInterval(() => {
+    if (!currentRole) return;
+    let session = null;
+    try { session = JSON.parse(lsRaw(LS_SESSION_KEY) || 'null'); } catch { session = null; }
+    if (!session || !session.loginAt || Date.now() - session.loginAt > SESSION_MAX_MS) {
+      currentRole = null;
+      lsDel(LS_SESSION_KEY);
+      updateAuthUI();
+      renderApp();
+      showToast('로그인 세션이 만료되어 보기 전용으로 전환되었습니다. 다시 로그인해주세요.', 'error');
+    }
+  }, 60 * 1000);
 }
 
 function canEditClass(classId) {
   if (!currentRole) return false;
   if (currentRole === 'admin') return true;
+  if (isWeekLocked(getDateKey())) return false; // [주차 확정] 관리자 외엔 수정 불가
   return currentRole === classId;
 }
 
 function canEditStaff() {
   if (!currentRole) return false;
   if (currentRole === 'admin') return true;
+  if (isWeekLocked(getDateKey())) return false; // [주차 확정] 관리자 외엔 수정 불가
   return currentRole === 'staff';
+}
+
+// ──────────────────────────────────────────────────────────────
+// [주차 출석 확정 잠금]
+//  - 날짜 선택이 항상 일요일로 고정되므로, getDateKey()의 날짜 하나가 그 주(1주일)를 의미합니다.
+//  - 관리자가 해당 주를 '확정'하면 그 날짜의 반별/스텝 출석은 관리자만 수정할 수 있습니다.
+// ──────────────────────────────────────────────────────────────
+let sharedWeekLocks = null;
+const LS_WEEK_LOCKS_KEY = 'songwol_week_locks';
+const getWeekLocks = () => sharedWeekLocks || lsGet(LS_WEEK_LOCKS_KEY);
+
+function isWeekLocked(key) {
+  const locks = getWeekLocks();
+  return !!(locks[key] && locks[key].locked);
+}
+
+function getWeekLockInfo(key) {
+  const locks = getWeekLocks();
+  return locks[key] || null;
+}
+
+window.toggleWeekLock = async function() {
+  if (currentRole !== 'admin') return showReadonlyToast();
+  const key = getDateKey();
+  const currentlyLocked = isWeekLocked(key);
+  const info = currentlyLocked
+    ? { locked: false, unlockedBy: getRoleLabel(), unlockedAt: Date.now() }
+    : { locked: true, lockedBy: getRoleLabel(), lockedAt: Date.now() };
+
+  if (B && B.setWeekLock) {
+    sharedWeekLocks = Object.assign({}, sharedWeekLocks || {}, { [key]: info });
+    queue(() => B.setWeekLock(key, info));
+  } else {
+    const all = getWeekLocks();
+    all[key] = info;
+    lsSet(LS_WEEK_LOCKS_KEY, JSON.stringify(all));
+    sharedWeekLocks = all;
+  }
+  renderApp();
+  showToast(currentlyLocked
+    ? '출석 확정이 해제되었습니다. 다시 수정할 수 있습니다.'
+    : '이번 주 출석이 확정되었습니다. 이제 관리자만 수정할 수 있습니다.');
+};
+
+function renderWeekLockBanner() {
+  const key = getDateKey();
+  const locked = isWeekLocked(key);
+  const info = getWeekLockInfo(key);
+  if (!locked) {
+    if (currentRole !== 'admin') return ''; // 비관리자에게는 미확정 상태를 굳이 띄우지 않음
+    return `
+    <div class="flex items-center justify-between gap-2 bg-white rounded-2xl ring-1 ring-black/6 px-4 py-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 shrink-0">미확정</span>
+        <span class="text-xs text-zinc-500 truncate">이번 주 출석 체크가 끝났으면 확정하세요. 확정 후엔 관리자만 수정할 수 있어요.</span>
+      </div>
+      <button onclick="toggleWeekLock()" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors shrink-0">출석 확정</button>
+    </div>`;
+  }
+  const lockedByLabel = info && info.lockedBy ? info.lockedBy : '관리자';
+  return `
+    <div class="flex items-center justify-between gap-2 bg-white rounded-2xl ring-1 ring-black/6 px-4 py-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 shrink-0">🔒 확정됨</span>
+        <span class="text-xs text-zinc-500 truncate">${lockedByLabel}가 이번 주 출석을 확정했습니다. 관리자만 수정할 수 있습니다.</span>
+      </div>
+      ${currentRole === 'admin'
+        ? `<button onclick="toggleWeekLock()" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors shrink-0">확정 해제</button>`
+        : ''}
+    </div>`;
 }
 
 function canEditMemo() {
@@ -774,12 +993,32 @@ function getStudentPhoto(name) {
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
 
+// [보안] 비로그인(보기 전용) 사용자에게는 원아 사진을 노출하지 않습니다.
+// 이름은 그대로 보이지만 사진은 전원 동일한 '잠금' 아이콘으로 가립니다.
+const MASKED_PHOTO_SVG = (() => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+    <rect width="200" height="200" fill="#e4e4e7"/>
+    <g transform="translate(100,108)" fill="none" stroke="#a1a1aa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="-32" y="-8" width="64" height="52" rx="8"/>
+      <path d="M-20 -8 v-16 a20 20 0 0 1 40 0 v16"/>
+    </g>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+})();
+
+// 화면에 표시할 사진 결정: 로그인 전이면 마스킹 아이콘, 로그인 후면 실제 사진
+function getDisplayPhoto(name) {
+  if (!currentRole) return MASKED_PHOTO_SVG;
+  return getStudentPhoto(name);
+}
+
 // ═══════════════════════════════════════════════════
 // 10. 초기화
 // ═══════════════════════════════════════════════════
 
 window.addEventListener('DOMContentLoaded', async () => {
   restoreSession();
+  startSessionWatcher();
   // 사유 표시 버튼 초기 상태 설정
   const _rBtn = document.getElementById('toggleReasonsBtn');
   if (_rBtn) {
@@ -817,6 +1056,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     B.watchPhotos(p => { sharedPhotos = p; renderApp(); });
     B.watchAll(h => { remoteHistory = h; if (activeTab === 'stats') renderStats(); });
     if (B.watchAppMemo) B.watchAppMemo(d => { sharedAppMemo = d; });
+    if (B.watchWeekLocks) B.watchWeekLocks(l => { sharedWeekLocks = l; renderApp(); });
+    if (B.watchNewcomers) B.watchNewcomers(n => { sharedNewcomers = n; if (activeTab === 'newcomer') renderNewcomerList(); });
     setupRealtimeListener();
   }
   updateSyncBadge(); // B 초기화 완료 후 배지 업데이트
@@ -907,6 +1148,7 @@ function renderApp() {
   if (!data.staff) data.staff = { attendance: {} };
 
   let html = '', totalPresent = 0, totalCount = 0;
+  html += renderWeekLockBanner();
 
   ministryData.forEach(cls => {
     if (!data[cls.id]) {
@@ -974,7 +1216,7 @@ function renderApp() {
                 ? 'ring-emerald-400'
                 : 'ring-zinc-200 opacity-60'} cursor-pointer select-none"
                 onclick="${editable ? `toggleAttendance('${cls.id}','${s}')` : 'showReadonlyToast()'}">
-                <img src="${getStudentPhoto(s)}" alt="${s}" class="w-full h-full object-cover object-top bg-zinc-100" loading="lazy">
+                <img src="${getDisplayPhoto(s)}" alt="${s}" class="w-full h-full object-cover object-top bg-zinc-100" loading="lazy">
                 ${isP ? `<div class="check-badge"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>` : ''}
                 ${editable ? `<button type="button" onclick="event.stopPropagation(); openPhotoUploader('${s}')"
                   title="사진 변경"
@@ -1021,6 +1263,9 @@ function renderApp() {
         </div>
       </div>`;
   });
+
+  // 새신자 섹션 (스텝 섹션 바로 위)
+  html += renderNewcomerSection();
 
   // 스텝 섹션
   const sa = data.staff.attendance || {};
@@ -1207,7 +1452,7 @@ window.renderSearchResults = function() {
       html += `
       <div class="flex items-center justify-between gap-3 p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5">
         <div class="flex items-center gap-3 min-w-0">
-          <img src="${getStudentPhoto(s)}" onclick="openStudentDetail('${s}')"
+          <img src="${getDisplayPhoto(s)}" onclick="openStudentDetail('${s}')"
             class="w-11 h-11 rounded-xl object-cover object-top shrink-0 ring-1 ring-black/6 cursor-pointer bg-zinc-100">
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
@@ -2279,7 +2524,7 @@ window.openAuthModal = function() {
   if (currentRole) {
     // 이미 로그인 상태 → 로그아웃
     currentRole = null;
-    lsDel(LS_ROLE_KEY);
+    lsDel(LS_SESSION_KEY);
     updateAuthUI();
     renderApp();
     showToast('로그아웃되었습니다. 보기 전용 모드입니다.');
@@ -2328,13 +2573,27 @@ function showLoginForm(errorMsg) {
   setTimeout(() => document.getElementById('loginPin')?.focus(), 100);
 }
 
-window.doLogin = function() {
+window.doLogin = async function() {
   const role = document.getElementById('loginRole').value;
   const pin = document.getElementById('loginPin').value.trim();
   if (!pin) return showLoginForm('PIN을 입력해주세요.');
-  if (CLASS_PINS[role] !== pin) return showLoginForm('PIN이 맞지 않습니다. 다시 확인해주세요.');
+
+  // [보안] 로그인 시도 제한 확인 (brute-force 완화)
+  const remain = getLoginLockRemaining(role);
+  if (remain > 0) {
+    return showLoginForm(`로그인 시도가 너무 많습니다. ${Math.ceil(remain / 1000)}초 후 다시 시도해주세요.`);
+  }
+
+  const hashed = await hashPin(pin);
+  if (CLASS_PINS[role] !== hashed) {
+    registerLoginFailure(role);
+    return showLoginForm('PIN이 맞지 않습니다. 다시 확인해주세요.');
+  }
+
+  clearLoginFailures(role);
   currentRole = role;
-  lsSet(LS_ROLE_KEY, role);
+  // [보안] 세션에 로그인 시각을 함께 저장해 4시간 뒤 자동 만료되게 함
+  lsSet(LS_SESSION_KEY, JSON.stringify({ role, loginAt: Date.now() }));
   closeAuthModal();
   updateAuthUI();
   renderApp();
@@ -2353,6 +2612,8 @@ window.openPinMgr = function() {
     ...ministryData.map(c => ({ id: c.id, label: c.className + ' (' + c.teacher + ')' })),
     { id: 'staff', label: '스텝' },
   ];
+  // [보안] PIN은 해시로만 저장되어 있어 현재 값을 화면에 복원해 보여줄 수 없습니다.
+  // 입력칸은 항상 비워두고, "새 PIN"을 입력했을 때만 저장되도록 합니다.
   document.getElementById('pinMgrBody').innerHTML = roles.map(r => {
     const isAdmin = r.id === 'admin';
     return `
@@ -2361,8 +2622,8 @@ window.openPinMgr = function() {
       ${isAdmin
         ? `<span class="flex-1 min-w-0 bg-zinc-100 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest text-zinc-400 select-none">••••</span>
            <span class="text-[11px] text-zinc-400 px-2.5 py-1.5 shrink-0">변경불가</span>`
-        : `<input type="number" id="pin_${r.id}" value="${CLASS_PINS[r.id] || ''}"
-             maxlength="4" placeholder="4자리"
+        : `<input type="password" id="pin_${r.id}" value=""
+             maxlength="4" placeholder="새 PIN 4자리"
              class="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-xs text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500">
            <button onclick="savePin('${r.id}')" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg transition-colors shrink-0">저장</button>`
       }
@@ -2375,14 +2636,15 @@ window.closePinMgr = () => {
   document.getElementById('pinMgrModal').classList.add('hidden');
 };
 
-window.savePin = function(roleId) {
+window.savePin = async function(roleId) {
   if (currentRole !== 'admin') return;
   if (roleId === 'admin') { showToast('관리자 PIN은 변경할 수 없습니다.', 'error'); return; }
   const val = (document.getElementById('pin_' + roleId).value || '').trim();
   if (!/^\d{4}$/.test(val)) return showToast('4자리 숫자를 입력하세요.');
-  savePinOverride(roleId, val);
+  await savePinOverride(roleId, val); // [보안] 평문이 아닌 해시가 저장됨
   CLASS_PINS = loadPins();
-  showToast(`${roleId} PIN이 ${val}로 변경되었습니다.`);
+  document.getElementById('pin_' + roleId).value = '';
+  showToast(`${roleId} PIN이 변경되었습니다.`); // [보안] 새 PIN 값을 토스트에 노출하지 않음
 };
 
 // ═══════════════════════════════════════════════════
@@ -2547,6 +2809,138 @@ window.resetPhotos = () => {
 };
 
 // ═══════════════════════════════════════════════════
+// 21-1. 새신자 수기 등록
+// ═══════════════════════════════════════════════════
+
+const LS_NEWCOMERS_KEY = 'songwol_newcomers';
+const getNewcomers = () => sharedNewcomers || lsGet(LS_NEWCOMERS_KEY);
+
+function renderNewcomerSection() {
+  const list = Object.entries(getNewcomers())
+    .map(([id, v]) => Object.assign({ id }, v))
+    .sort((a, b) => (b.visitDate || '').localeCompare(a.visitDate || ''));
+  const canWrite = !!currentRole; // [요청 반영] 로그인한 사용자라면 누구나 등록/수정 가능
+  const clsLabel = cid => {
+    const c = ministryData.find(c => c.id === cid);
+    return c ? c.className : '미정';
+  };
+
+  return `
+    <div class="bg-white rounded-2xl ring-1 ring-black/6">
+      <div class="px-4 pt-4 pb-3 border-b border-zinc-100 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-zinc-900">새신자</span>
+          ${canWrite ? '' : `<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">보기 전용</span>`}
+        </div>
+        <div class="flex items-center gap-1.5">
+          ${canWrite ? `<button onclick="openNewcomerModal()" class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors">+ 등록</button>` : ''}
+          <span class="tabular-nums text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg">${list.length}명</span>
+        </div>
+      </div>
+      <div class="p-4 space-y-2">
+        ${list.length ? list.map(n => `
+        <div class="flex items-center justify-between gap-3 p-3 bg-zinc-50 rounded-xl ring-1 ring-black/5">
+          <div class="min-w-0 cursor-pointer" ${canWrite ? `onclick="openNewcomerModal('${n.id}')"` : ''}>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-medium text-sm">${n.name}</span>
+              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">${clsLabel(n.classId)}</span>
+            </div>
+            <div class="text-xs text-zinc-400 mt-0.5">
+              ${n.visitDate ? '방문일 ' + n.visitDate : ''}${n.contact ? ' · ' + n.contact : ''}
+            </div>
+            ${n.memo ? `<div class="text-xs text-zinc-500 mt-1">${n.memo}</div>` : ''}
+          </div>
+          ${canWrite ? `<button onclick="event.stopPropagation(); deleteNewcomer('${n.id}')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-rose-50 text-zinc-500 hover:text-rose-600 transition-colors shrink-0">삭제</button>` : ''}
+        </div>`).join('') : `<div class="text-sm text-zinc-400 text-center py-4">등록된 새신자가 없습니다.</div>`}
+      </div>
+    </div>`;
+}
+
+window.openNewcomerModal = function(id) {
+  if (!currentRole) return showReadonlyToast();
+  const classOptions = ministryData.map(c => `<option value="${c.id}">${c.className}</option>`).join('');
+  document.getElementById('newcomerClass').innerHTML = `<option value="">미정</option>${classOptions}`;
+  document.getElementById('newcomerEditId').value = id || '';
+  if (id) {
+    const n = getNewcomers()[id] || {};
+    document.getElementById('newcomerModalTitle').textContent = '새신자 정보 수정';
+    document.getElementById('newcomerName').value = n.name || '';
+    document.getElementById('newcomerVisitDate').value = n.visitDate || '';
+    document.getElementById('newcomerClass').value = n.classId || '';
+    document.getElementById('newcomerContact').value = n.contact || '';
+    document.getElementById('newcomerMemo').value = n.memo || '';
+  } else {
+    document.getElementById('newcomerModalTitle').textContent = '새신자 등록';
+    document.getElementById('newcomerName').value = '';
+    document.getElementById('newcomerVisitDate').value = getDateKey();
+    document.getElementById('newcomerClass').value = '';
+    document.getElementById('newcomerContact').value = '';
+    document.getElementById('newcomerMemo').value = '';
+  }
+  document.getElementById('newcomerModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('newcomerName')?.focus(), 100);
+};
+
+window.closeNewcomerModal = () => {
+  document.getElementById('newcomerModal').classList.add('hidden');
+};
+
+window.saveNewcomer = async function() {
+  if (!currentRole) return showReadonlyToast();
+  const id = document.getElementById('newcomerEditId').value || null;
+  const name = (document.getElementById('newcomerName').value || '').trim();
+  if (!name) return showToast('이름을 입력해주세요.');
+  const entry = {
+    name,
+    visitDate: document.getElementById('newcomerVisitDate').value || '',
+    classId: document.getElementById('newcomerClass').value || '',
+    contact: (document.getElementById('newcomerContact').value || '').trim(),
+    memo: (document.getElementById('newcomerMemo').value || '').trim(),
+    updatedBy: getRoleLabel(),
+    updatedAt: Date.now()
+  };
+
+  if (B && B.addNewcomer) {
+    if (id) {
+      sharedNewcomers = Object.assign({}, sharedNewcomers || {}, { [id]: Object.assign({}, (sharedNewcomers || {})[id], entry) });
+      await queue(() => B.updateNewcomer(id, entry));
+    } else {
+      const newId = await B.addNewcomer(Object.assign({ createdAt: Date.now() }, entry));
+      sharedNewcomers = Object.assign({}, sharedNewcomers || {}, { [newId]: entry });
+    }
+  } else {
+    const all = getNewcomers();
+    const useId = id || ('local_' + Date.now());
+    all[useId] = Object.assign({}, all[useId], entry);
+    lsSet(LS_NEWCOMERS_KEY, JSON.stringify(all));
+    sharedNewcomers = all;
+  }
+  closeNewcomerModal();
+  renderApp();
+  showToast(id ? '새신자 정보가 수정되었습니다.' : `${name} 새신자가 등록되었습니다.`);
+};
+
+window.deleteNewcomer = async function(id) {
+  if (!currentRole) return showReadonlyToast();
+  const n = getNewcomers()[id];
+  if (!n) return;
+  if (!confirm(`"${n.name}" 새신자 정보를 삭제하시겠습니까?`)) return;
+  if (B && B.deleteNewcomer) {
+    const next = Object.assign({}, sharedNewcomers);
+    delete next[id];
+    sharedNewcomers = next;
+    await queue(() => B.deleteNewcomer(id));
+  } else {
+    const all = getNewcomers();
+    delete all[id];
+    lsSet(LS_NEWCOMERS_KEY, JSON.stringify(all));
+    sharedNewcomers = all;
+  }
+  renderApp();
+  showToast(`${n.name} 새신자 정보가 삭제되었습니다.`);
+};
+
+// ═══════════════════════════════════════════════════
 // 22. 상세 모달
 // ═══════════════════════════════════════════════════
 
@@ -2570,7 +2964,7 @@ window.openStudentDetail = name => {
   const statBox = (label, val, cls) => `<div class="${cls} p-3 rounded-xl ring-1 ring-black/5 text-center"><div class="text-xs text-zinc-500 mb-1">${label}</div><div class="text-xl font-semibold tabular-nums">${val}</div></div>`;
   showDetail(`${name} 출석 기록`, `
     <div class="flex items-center gap-3">
-      <img src="${getStudentPhoto(name)}" class="w-16 h-16 rounded-2xl object-cover object-top ring-1 ring-black/8 bg-zinc-100">
+      <img src="${getDisplayPhoto(name)}" class="w-16 h-16 rounded-2xl object-cover object-top ring-1 ring-black/8 bg-zinc-100">
       <div><div class="font-semibold text-zinc-900">${name}</div><div class="text-xs text-zinc-400 mt-0.5">${cur ? cur.className + ' · ' + cur.teacher + ' 선생님' : ''}</div></div>
     </div>
     ${memo ? `<div class="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-xl ring-1 ring-amber-200/60">${memo}</div>` : ''}
